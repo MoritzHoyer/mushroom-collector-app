@@ -23,7 +23,7 @@ const Logo = styled.img`
   }
 `;
 
-export default function HomePage() {
+export default function Header() {
   return (
     <HeaderContainer>
       <Logo
