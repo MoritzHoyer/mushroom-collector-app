@@ -1,7 +1,13 @@
+import React from "react";
+import Header from "../components/Header/Header.js";
+
 export default function HomePage() {
   return (
     <div>
-      <h1>Hello from Next.js</h1>
+      <Header />
+      <main>
+        <h1>Learn more about mushrooms with our collection!</h1>
+      </main>
     </div>
   );
 }
