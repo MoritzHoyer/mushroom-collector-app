@@ -1,13 +1,15 @@
 import React from "react";
 import Header from "../components/Header/Header.js";
 import Footer from "@/components/Footer/Footer.js";
+import LoginButton from "@/components/Login-Button/Login-Button.js";
 
 export default function HomePage() {
   return (
     <div>
       <Header />
       <main>
-        <h1>Learn more about mushrooms with our collection!</h1>
+        <h1>Mushroom Collection</h1>
+        <LoginButton></LoginButton>
       </main>
       <Footer />
     </div>
