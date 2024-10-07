@@ -41,7 +41,7 @@ const NavLink = styled(Link)`
   line-height: 1.2;
 
   &:hover {
-    text-decoration: underline; // Unterstreichung beim Hover
+    text-decoration: underline;
   }
 `;
 
@@ -55,12 +55,12 @@ export default function Footer() {
       <Nav>
         <NavLink href="/">
           <Icon
-            src="/icons/home-icon.svg"
-            alt="Home Icon"
+            src="/icons/knowledge-icon.svg"
+            alt="Knowledge Icon"
             width={24}
             height={24}
           />
-          Home
+          Knowledge
         </NavLink>
         <NavLink href="/map">
           <Icon
@@ -69,25 +69,16 @@ export default function Footer() {
             width={24}
             height={24}
           />
-          Map
+          Locations
         </NavLink>
-        <NavLink href="/add-entry">
+        <NavLink href="/addMushroom">
           <Icon
-            src="/icons/add-entry-icon.svg"
+            src="/icons/addMushroom-icon.svg"
             alt="Add Entry Icon"
             width={24}
             height={24}
           />
-          Add Entry
-        </NavLink>
-        <NavLink href="/recipes">
-          <Icon
-            src="/icons/recipes-icon.svg"
-            alt="Recipes Icon"
-            width={24}
-            height={24}
-          />
-          Recipes
+          Add Mushroom
         </NavLink>
         <NavLink href="/profile">
           <Icon
