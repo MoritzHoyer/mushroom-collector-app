@@ -1,5 +1,5 @@
 import React from "react";
-import EntryCard from "../EntryCard/EntryCard.js";
+import EntryCard from "./EntryCard.js";
 import styled from "styled-components";
 
 const ListContainer = styled.div`
@@ -7,10 +7,11 @@ const ListContainer = styled.div`
 `;
 
 export default function EntryList({ entries }) {
+  console.log("entries", entries);
   return (
     <ListContainer>
       {entries.map((entry) => (
-        <EntryCard key={entry.id} entry={entry} />
+        <EntryCard key={entry._id} entry={entry} />
       ))}
     </ListContainer>
   );

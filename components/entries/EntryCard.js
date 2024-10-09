@@ -1,8 +1,25 @@
-import React from "react";
 import styled from "styled-components";
 import Link from "next/link";
 
-const EntryCardContainer = styled(Link)`
+const EntryCard = ({ entry }) => {
+  return (
+    <Link href={`/entries/${entry._id}`} passHref>
+      <EntryCardContainer>
+        <EntryImage src={entry.images[0]} alt={entry.name} />
+        <EntryName>{entry.name}</EntryName>
+        <EntryLocation>
+          Latitude: {entry.location.latitude}, Longitude:{" "}
+          {entry.location.longitude}
+        </EntryLocation>
+        <EntryDate>{new Date(entry.date).toLocaleDateString()}</EntryDate>
+      </EntryCardContainer>
+    </Link>
+  );
+};
+
+export default EntryCard;
+
+const EntryCardContainer = styled.div`
   display: flex;
   flex-direction: column;
   border: 1px solid #ccc;
@@ -29,10 +46,6 @@ const EntryName = styled.h3`
   margin: 10px 0 5px;
 `;
 
-const EntrySpecies = styled.p`
-  margin: 5px 0;
-`;
-
 const EntryLocation = styled.p`
   margin: 5px 0;
 `;
@@ -40,15 +53,3 @@ const EntryLocation = styled.p`
 const EntryDate = styled.p`
   margin: 5px 0;
 `;
-
-export default function EntryCard({ entry }) {
-  return (
-    <EntryCardContainer href={`/entries/${entry.id}`}>
-      <EntryImage src={entry.image} alt={entry.name} />
-      <EntryName>{entry.name}</EntryName>
-      <EntrySpecies>{entry.species}</EntrySpecies>
-      <EntryLocation>{entry.location}</EntryLocation>
-      <EntryDate>{entry.date}</EntryDate>
-    </EntryCardContainer>
-  );
-}
