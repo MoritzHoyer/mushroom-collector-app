@@ -1,4 +1,3 @@
-import React from "react";
 import styled from "styled-components";
 
 const StyledButton = styled.button`
@@ -17,6 +16,8 @@ const StyledButton = styled.button`
   }
 `;
 
-export default function AddEntryButton({ onClick }) {
-  return <StyledButton onClick={onClick}>Add Mushroom</StyledButton>;
-}
+const AddEntryButton = ({ onClick }) => {
+  return <StyledButton onClick={onClick}>Add Entry</StyledButton>;
+};
+
+export default AddEntryButton;

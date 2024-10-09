@@ -71,14 +71,14 @@ export default function Footer() {
           />
           Locations
         </NavLink>
-        <NavLink href="/addMushroom">
+        <NavLink href="/addEntry">
           <Icon
             src="/icons/addMushroom-icon.svg"
             alt="Add Entry Icon"
             width={24}
             height={24}
           />
-          Add Mushroom
+          Add Entry
         </NavLink>
         <NavLink href="/profile">
           <Icon

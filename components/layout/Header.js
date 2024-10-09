@@ -1,5 +1,20 @@
-import React from "react";
 import styled from "styled-components";
+import Image from "next/image";
+
+const Header = () => {
+  return (
+    <HeaderContainer>
+      <Image
+        src="/shroomie-logo_color_01.svg"
+        alt="Shroomie: Mushroom Collector App Logo"
+        width={200}
+        height={60}
+      />
+    </HeaderContainer>
+  );
+};
+
+export default Header;
 
 const HeaderContainer = styled.header`
   padding: 20px;
@@ -22,14 +37,3 @@ const Logo = styled.img`
     max-height: 40px;
   }
 `;
-
-export default function Header() {
-  return (
-    <HeaderContainer>
-      <Logo
-        src="/shroomie-logo_color_01.svg"
-        alt="shroomie: Mushroom Collector App Logo"
-      />
-    </HeaderContainer>
-  );
-}
