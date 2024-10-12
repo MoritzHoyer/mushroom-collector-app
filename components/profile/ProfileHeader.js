@@ -1,30 +1,11 @@
 import React from "react";
-import styled from "styled-components";
 import Image from "next/image";
-
-const HeaderContainer = styled.div`
-  display: flex;
-  align-items: center;
-  width: 100%;
-  justify-content: space-between;
-`;
-
-const ProfilePicture = styled.img`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-`;
-
-const Username = styled.h1`
-  margin-left: 10px;
-`;
-
-const SettingsButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-`;
+import {
+  HeaderContainer,
+  ProfilePicture,
+  Username,
+  SettingsButton,
+} from "../styles/ProfileHeaderStyle";
 
 export default function ProfileHeader({ user }) {
   return (

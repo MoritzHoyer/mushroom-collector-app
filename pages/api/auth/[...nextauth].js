@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
-import clientPromise from "@/lib/mongodb";
+import clientPromise from "@/db/mongodb";
 
 export default NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
@@ -31,7 +31,6 @@ export default NextAuth({
       },
     }),
   ],
-  debug: true,
   callbacks: {
     async session({ session, user }) {
       session.user.id = user.id;

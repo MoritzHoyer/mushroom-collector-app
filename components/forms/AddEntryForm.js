@@ -1,31 +1,110 @@
-import { useState } from "react";
-import styled from "styled-components";
+// components/forms/AddEntryForm.js
+
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import Slider from "react-slick";
+import {
+  Form,
+  Instructions,
+  PlaceholderContainer,
+  PlaceholderText,
+  SliderContainer,
+  SliderImage,
+  HiddenInput,
+  Label,
+  Input,
+  TextArea,
+  ButtonGroup,
+  ErrorMessage,
+} from "../styles/AddEntryFormStyle";
+import { PrimaryButton } from "../styles/PrimaryButtonStyle";
+import { SelectButton, IconImage } from "../styles/SelectButtonStyle";
 
-const allowedFormats = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-];
+// Importiere die CSS-Dateien für den Slider
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
-const AddEntryForm = () => {
-  const { data: session } = useSession();
+export default function AddEntryForm() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const [name, setName] = useState("");
+  const [alternativeNames, setAlternativeNames] = useState("");
+  const [scientificName, setScientificName] = useState("");
+  const [group, setGroup] = useState(""); // Für die Pilzgruppe
+  const [edibility, setEdibility] = useState(""); // Für die Verzehrbarkeit
   const [notes, setNotes] = useState("");
   const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const [uploadProgress, setUploadProgress] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const router = useRouter();
 
+  // Umgebungsvariablen auslesen
   const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-  console.log("CLOUD_NAME:", CLOUD_NAME);
-  console.log("UPLOAD_PRESET:", UPLOAD_PRESET);
+  // Optionen für Gruppe und Verzehrbarkeit
+  const groupOptions = [
+    {
+      value: "Röhrenpilze",
+      label: "Röhrenpilze",
+      icon: "/icons/boletes-icon.svg",
+    },
+    {
+      value: "Lamellenpilze, Stiel mit Ring",
+      label: "Lamellenpilze, Stiel mit Ring",
+      icon: "/icons/lamellar-annulus-icon.svg",
+    },
+    {
+      value: "Lamellenpilze, Stiel ohne Ring",
+      label: "Lamellenpilze, Stiel ohne Ring",
+      icon: "/icons/lamellar-icon.svg",
+    },
+    {
+      value: "Sonstige Pilze",
+      label: "Sonstige Pilze",
+      icon: "/icons/other-mushrooms-icon.svg",
+    },
+  ];
+
+  const edibilityOptions = [
+    {
+      value: "tödlich giftig",
+      label: "tödlich giftig",
+      icon: "/icons/deadly-toxic-icon.svg",
+    },
+    {
+      value: "giftig",
+      label: "giftig",
+      icon: "/icons/toxic-icon.svg",
+    },
+    {
+      value: "ungenießbar",
+      label: "ungenießbar",
+      icon: "/icons/inedible-icon.svg",
+    },
+    {
+      value: "eingeschränkt essbar",
+      label: "eingeschränkt essbar",
+      icon: "/icons/edible-limited-icon.svg",
+    },
+    {
+      value: "essbar",
+      label: "essbar",
+      icon: "/icons/edible-icon.svg",
+    },
+  ];
+
+  // Ladezustand oder nicht authentifizierten Zustand behandeln
+  if (status === "loading") {
+    return <p>Lade Authentifizierungsstatus...</p>;
+  }
+
+  if (!session) {
+    return <p>Bitte melde dich an, um einen Eintrag hinzuzufügen.</p>;
+  }
 
   const validateInputs = () => {
     const errors = {};
@@ -33,7 +112,18 @@ const AddEntryForm = () => {
     if (!name.trim()) {
       errors.name = "Bitte gib einen vermuteten Namen ein.";
     }
-
+    if (!alternativeNames.trim()) {
+      errors.alternativeNames = "Bitte gib alternative Namen ein.";
+    }
+    if (!scientificName.trim()) {
+      errors.scientificName = "Bitte gib einen wissenschaftlichen Namen ein.";
+    }
+    if (!group) {
+      errors.group = "Bitte wähle eine Gruppe aus.";
+    }
+    if (!edibility) {
+      errors.edibility = "Bitte wähle die Verzehrbarkeit aus.";
+    }
     if (images.length !== 3) {
       errors.images = "Bitte wähle genau drei Bilder aus.";
     }
@@ -45,28 +135,43 @@ const AddEntryForm = () => {
     const files = e.target.files;
 
     if (files.length !== 3) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
+      setErrors({
+        ...errors,
         images: "Bitte wähle genau drei Bilder aus.",
-      }));
-      e.target.value = null;
+      });
+      e.target.value = null; // Reset des Dateiauswahlfeldes
       return;
     }
 
+    const allowedFormats = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic",
+      "image/heif",
+    ];
+
     for (let i = 0; i < files.length; i++) {
       if (!allowedFormats.includes(files[i].type)) {
-        setErrors((prevErrors) => ({
-          ...prevErrors,
+        setErrors({
+          ...errors,
           images:
             "Bitte wähle Bilder im Format JPG, PNG, WEBP, HEIC oder HEIF aus.",
-        }));
+        });
         e.target.value = null;
         return;
       }
     }
 
     setImages(files);
-    setErrors((prevErrors) => ({ ...prevErrors, images: null }));
+    setErrors({ ...errors, images: null });
+
+    // Vorschauen der Bilder erstellen
+    const previews = [];
+    for (let i = 0; i < files.length; i++) {
+      previews.push(URL.createObjectURL(files[i]));
+    }
+    setImagePreviews(previews);
   };
 
   const handleSubmit = async (e) => {
@@ -78,15 +183,18 @@ const AddEntryForm = () => {
       return;
     }
 
+    // Stelle sicher, dass der Browser Geolocation unterstützt
     if (!navigator.geolocation) {
       alert("Geolocation wird von deinem Browser nicht unterstützt.");
       return;
     }
 
-    setIsLoading(true);
+    setIsLoading(true); // Ladeindikator anzeigen
 
     try {
-      const location = await new Promise((resolve) => {
+      // Standortdaten abrufen
+      let location = null;
+      location = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             resolve({
@@ -95,56 +203,62 @@ const AddEntryForm = () => {
             });
           },
           (error) => {
-            console.error(
-              "Fehler beim Abrufen der Standortdaten:",
-              error.message
-            );
-            resolve(null);
+            console.error("Fehler beim Abrufen der Standortdaten:", error);
+            resolve(null); // Weiter ohne Standortdaten
           }
         );
       });
 
       // Bilder zu Cloudinary hochladen
       const imageUrls = [];
+      const progressArray = [0, 0, 0];
+      setUploadProgress(progressArray);
 
       for (let i = 0; i < images.length; i++) {
         const formData = new FormData();
         formData.append("file", images[i]);
         formData.append("upload_preset", UPLOAD_PRESET);
 
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-          {
-            method: "POST",
-            body: formData,
+        try {
+          const response = await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok && data.secure_url) {
+            imageUrls.push(data.secure_url);
+            // Fortschritt aktualisieren
+            progressArray[i] = 100;
+            setUploadProgress([...progressArray]);
+          } else {
+            throw new Error("Fehler beim Hochladen der Bilder.");
           }
-        );
-
-        const data = await response.json();
-
-        if (response.ok && data.secure_url) {
-          imageUrls.push(data.secure_url);
-          // Fortschrittsanzeige aktualisieren
-          setUploadProgress((prevProgress) => {
-            const newProgress = [...prevProgress];
-            newProgress[i] = 100;
-            return newProgress;
-          });
-        } else {
-          throw new Error("Fehler beim Hochladen der Bilder.");
+        } catch (error) {
+          console.error("Fehler beim Hochladen des Bildes:", error);
+          throw error;
         }
       }
 
-      // Eintrag erstellen
+      // Erstelle den Eintrag
       const entry = {
         name,
+        alternativeNames,
+        scientificName,
+        group,
+        edibility,
         notes,
         images: imageUrls,
         date: new Date().toISOString(),
         location,
-        userId: session.user.id,
+        // `userId` wird in der API-Route hinzugefügt
       };
 
+      // Sende den Eintrag an die API
       const res = await fetch("/api/entries", {
         method: "POST",
         headers: {
@@ -154,6 +268,8 @@ const AddEntryForm = () => {
       });
 
       if (res.ok) {
+        // Erfolgsmeldung und Weiterleitung zur Profilseite
+        alert("Eintrag erfolgreich hinzugefügt!");
         router.push("/profile");
       } else {
         throw new Error("Fehler beim Hinzufügen des Eintrags.");
@@ -162,97 +278,149 @@ const AddEntryForm = () => {
       console.error(error);
       alert(error.message);
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Ladeindikator ausblenden
     }
+  };
+
+  // Einstellungen für den Slider
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
   };
 
   return (
     <Form onSubmit={handleSubmit}>
+      {imagePreviews.length > 0 ? (
+        <SliderContainer>
+          <Slider {...sliderSettings}>
+            {imagePreviews.map((src, index) => (
+              <div key={index}>
+                <SliderImage src={src} alt={`Bild ${index + 1}`} />
+              </div>
+            ))}
+          </Slider>
+        </SliderContainer>
+      ) : (
+        <PlaceholderContainer>
+          <PlaceholderText>
+            Hier werden deine hochgeladenen Bilder angezeigt.
+          </PlaceholderText>
+        </PlaceholderContainer>
+      )}
+
+      <Instructions>
+        Bitte lade genau <strong>drei Bilder</strong> des Pilzes hoch: von der{" "}
+        <strong>Seite</strong>, von <strong>oben</strong> und von{" "}
+        <strong>unten</strong>. Diese Perspektiven sind für die Identifikation
+        notwendig.
+      </Instructions>
+
+      <PrimaryButton htmlFor="image-upload">
+        Datei auswählen
+        <HiddenInput
+          id="image-upload"
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleImageChange}
+          required
+        />
+      </PrimaryButton>
+
+      {errors.images && <ErrorMessage>{errors.images}</ErrorMessage>}
+
+      <Label htmlFor="name">Vermuteter Name des Pilzes</Label>
       <Input
+        id="name"
         type="text"
-        placeholder="Vermuteter Name des Pilzes"
+        placeholder="Hier eingeben"
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
       />
       {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+
+      <Label htmlFor="alternativeNames">Alternative Namen</Label>
+      <Input
+        id="alternativeNames"
+        type="text"
+        placeholder="Hier eingeben"
+        value={alternativeNames}
+        onChange={(e) => setAlternativeNames(e.target.value)}
+        required
+      />
+      {errors.alternativeNames && (
+        <ErrorMessage>{errors.alternativeNames}</ErrorMessage>
+      )}
+
+      <Label htmlFor="scientificName">Wissenschaftlicher Name</Label>
+      <Input
+        id="scientificName"
+        type="text"
+        placeholder="Hier eingeben"
+        value={scientificName}
+        onChange={(e) => setScientificName(e.target.value)}
+        required
+      />
+      {errors.scientificName && (
+        <ErrorMessage>{errors.scientificName}</ErrorMessage>
+      )}
+
+      <Label htmlFor="group">Gruppe</Label>
+      <ButtonGroup>
+        {groupOptions.map((option) => (
+          <SelectButton
+            key={option.value}
+            $isSelected={group === option.value} // Highlight den gewählten Button für "Gruppe"
+            onClick={() => setGroup(option.value)} // Setzt den ausgewählten Gruppenwert
+          >
+            <IconImage
+              src={option.icon}
+              alt={option.label}
+              width={24}
+              height={24}
+            />
+            {option.label}
+          </SelectButton>
+        ))}
+      </ButtonGroup>
+      {errors.group && <ErrorMessage>{errors.group}</ErrorMessage>}
+
+      <Label htmlFor="edibility">Verzehrbarkeit</Label>
+      <ButtonGroup>
+        {edibilityOptions.map((option) => (
+          <SelectButton
+            key={option.value}
+            $isSelected={edibility === option.value} // Highlight den gewählten Button für "Verzehrbarkeit"
+            onClick={() => setEdibility(option.value)} // Setzt den ausgewählten Verzehrbarkeitswert
+          >
+            <IconImage
+              src={option.icon}
+              alt={option.label}
+              width={24}
+              height={24}
+            />
+            {option.label}
+          </SelectButton>
+        ))}
+      </ButtonGroup>
+      {errors.edibility && <ErrorMessage>{errors.edibility}</ErrorMessage>}
+
+      <Label htmlFor="notes">Zusätzliche Notizen</Label>
       <TextArea
-        placeholder="Zusätzliche Notizen"
+        id="notes"
+        placeholder="Hier eingeben"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
       />
-      <Input
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={handleImageChange}
-        required
-      />
-      {errors.images && <ErrorMessage>{errors.images}</ErrorMessage>}
-      {uploadProgress.length > 0 && (
-        <ProgressContainer>
-          {uploadProgress.map((progress, index) => (
-            <ProgressBar key={index}>
-              <Progress $progress={progress} />
-            </ProgressBar>
-          ))}
-        </ProgressContainer>
-      )}
-      <Button type="submit" disabled={isLoading}>
+
+      <PrimaryButton type="submit" disabled={isLoading}>
         {isLoading ? "Wird hochgeladen..." : "Eintrag hinzufügen"}
-      </Button>
+      </PrimaryButton>
       {isLoading && <p>Lade hoch, bitte warten...</p>}
     </Form>
   );
-};
-
-export default AddEntryForm;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-  width: 100%;
-`;
-
-const Input = styled.input`
-  margin: 10px 0;
-  padding: 10px;
-  width: 100%;
-`;
-
-const TextArea = styled.textarea`
-  margin: 10px 0;
-  padding: 10px;
-  width: 100%;
-`;
-
-const Button = styled.button`
-  padding: 10px 20px;
-  margin-top: 20px;
-`;
-
-const ProgressContainer = styled.div`
-  width: 100%;
-  margin-top: 10px;
-`;
-
-const ProgressBar = styled.div`
-  background-color: #ccc;
-  border-radius: 5px;
-  overflow: hidden;
-  margin-bottom: 5px;
-`;
-
-const Progress = styled.div`
-  background-color: #5a67d8;
-  height: 10px;
-  width: ${({ $progress }) => $progress}%;
-  transition: width 0.3s ease;
-`;
-
-const ErrorMessage = styled.div`
-  color: red;
-  margin-top: 5px;
-`;
+}

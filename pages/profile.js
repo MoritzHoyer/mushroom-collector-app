@@ -1,48 +1,49 @@
+// pages/profile.js
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router.js";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import Footer from "../components/layout/Footer.js";
-import ProfileHeader from "../components/profile/ProfileHeader.js";
-import EntryList from "../components/entries/EntryList.js";
-import SearchBar from "../components/profile/Searchbar.js";
-import AddEntryButton from "../components/buttons/AddEntryButton.js";
-import styled from "styled-components";
-
-// Styled Component für das Layout
-const ProfileContainer = styled.div`
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 80px;
-`;
+import MainLayout from "../components/layout/MainLayout";
+import ProfileHeader from "../components/profile/ProfileHeader";
+import EntryList from "../components/entries/EntryList";
+import SearchBar from "../components/searchbar/Searchbar";
+import AddEntryButton from "../components/buttons/AddEntryButton";
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [entries, setEntries] = useState([]);
-  const router = useRouter(); // Router initialisieren
+  const router = useRouter();
 
   useEffect(() => {
-    if (session) {
-      const fetchEntries = async () => {
-        const res = await fetch("/api/entries");
-        if (res.ok) {
-          const data = await res.json();
-          setEntries(data);
-        }
-      };
-      fetchEntries();
+    if (status === "loading") return;
+
+    if (!session) {
+      router.push("/");
+      return;
     }
-  }, [session]);
+
+    const fetchEntries = async () => {
+      const res = await fetch("/api/entries");
+      if (res.ok) {
+        const data = await res.json();
+        setEntries(data);
+      } else {
+        console.error("Fehler beim Laden der Einträge");
+      }
+    };
+    fetchEntries();
+  }, [session, status]);
+
+  if (status === "loading") {
+    return <p>Lade Authentifizierungsstatus...</p>;
+  }
 
   return (
-    <ProfileContainer>
+    <MainLayout>
       <ProfileHeader user={session?.user} />
-      <h2>Mushrooms collected ({entries.length})</h2>
-      <SearchBar placeholder="Search..." />
+      <h2>Gesammelte Pilze ({entries.length})</h2>
+      <SearchBar placeholder="Suchen..." />
       <EntryList entries={entries} />
       <AddEntryButton onClick={() => router.push("/addEntry")} />
-      <Footer />
-    </ProfileContainer>
+    </MainLayout>
   );
 }

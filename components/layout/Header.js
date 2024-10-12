@@ -1,5 +1,5 @@
-import styled from "styled-components";
 import Image from "next/image";
+import { HeaderContainer } from "../styles/HeaderStyle";
 
 const Header = () => {
   return (
@@ -15,25 +15,3 @@ const Header = () => {
 };
 
 export default Header;
-
-const HeaderContainer = styled.header`
-  padding: 20px;
-  text-align: center;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const Logo = styled.img`
-  max-width: 100%;
-  height: auto;
-  max-height: 10vh;
-
-  @media (max-width: 768px) {
-    max-height: 80px;
-  }
-
-  @media (max-width: 480px) {
-    max-height: 40px;
-  }
-`;
