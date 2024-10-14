@@ -1,5 +1,5 @@
 import React from "react";
-import Link from "next/link"; // Importiere die Link-Komponente von Next.js
+import Link from "next/link";
 import {
   FooterContainer,
   Nav,
@@ -17,7 +17,7 @@ export default function Footer() {
             Identify
           </NavLink>
         </Link>
-        <Link href="/map" passHref>
+        <Link href="/locations" passHref>
           <NavLink>
             <IconImage src="/icons/map-icon.svg" alt="Map Icon" />
             Locations

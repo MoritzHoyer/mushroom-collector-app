@@ -12,6 +12,7 @@ const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
+  console.log("session", session);
   const router = useRouter();
 
   // Fetch entries using useSWR for caching

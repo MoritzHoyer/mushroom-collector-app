@@ -35,6 +35,7 @@ export const PlaceholderContainer = styled.div`
   align-items: center;
   justify-content: center;
   position: relative;
+  overflow: hidden;
 
   @media (min-width: 768px) {
     height: 250px;
@@ -49,6 +50,12 @@ export const PlaceholderText = styled.p`
   font-size: ${fontSize.large};
   color: ${colors.text};
   text-align: center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  pointer-events: none;
 `;
 
 export const SliderContainer = styled.div`

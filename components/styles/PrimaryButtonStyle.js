@@ -2,6 +2,9 @@ import styled from "styled-components";
 import { colors, spacing, borderRadius, shadows, fontSize } from "../../styles";
 
 export const PrimaryButton = styled.button`
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   padding: ${spacing.medium};
   margin: ${spacing.small};
   background-color: ${colors.primary};
