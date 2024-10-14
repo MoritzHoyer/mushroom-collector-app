@@ -1,22 +1,34 @@
 import styled from "styled-components";
+import { colors, spacing, borderRadius, shadows, fontSize } from "../../styles";
 
 export const PrimaryButton = styled.button`
-  padding: ${({ theme }) => theme.spacing.medium};
-  margin: ${({ theme }) => theme.spacing.small};
-  background-color: ${({ theme }) => theme.colors.primary};
+  padding: ${spacing.medium};
+  margin: ${spacing.small};
+  background-color: ${colors.primary};
   color: white;
   border: none;
-  border-radius: ${({ theme }) => theme.borderRadius.button};
+  border-radius: ${borderRadius.button};
   cursor: pointer;
-  font-size: 16px;
+  font-size: ${fontSize.medium};
   width: 100%;
 
   &:hover {
-    background-color: ${({ theme }) => theme.colors.primaryHover};
+    background-color: ${colors.primaryHover};
+    box-shadow: ${shadows.hover};
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: ${shadows.focus};
   }
 
   &:disabled {
-    background-color: ${({ theme }) => theme.colors.disabled};
+    background-color: ${colors.disabled};
     cursor: not-allowed;
+  }
+
+  @media (min-width: 768px) {
+    padding: ${spacing.large};
+    font-size: 18px;
   }
 `;

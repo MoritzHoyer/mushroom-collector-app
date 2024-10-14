@@ -1,11 +1,11 @@
 import React from "react";
-import MainLayout from "../components/layout/MainLayout";
 import AddEntryForm from "../components/forms/AddEntryForm";
+import { Container } from "@/styles";
 
 export default function AddEntryPage() {
   return (
-    <MainLayout>
+    <Container>
       <AddEntryForm />
-    </MainLayout>
+    </Container>
   );
 }

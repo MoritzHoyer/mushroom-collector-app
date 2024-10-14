@@ -1,8 +1,7 @@
-// components/forms/AddEntryForm.js
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import Slider from "react-slick";
 import {
   Form,
@@ -21,31 +20,59 @@ import {
 import { PrimaryButton } from "../styles/PrimaryButtonStyle";
 import { SelectButton, IconImage } from "../styles/SelectButtonStyle";
 
-// Importiere die CSS-Dateien für den Slider
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+// Dynamische Imports für Leaflet-Komponenten
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  { ssr: false }
+);
+const TileLayer = dynamic(
+  () => import("react-leaflet").then((mod) => mod.TileLayer),
+  { ssr: false }
+);
+const Marker = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Marker),
+  { ssr: false }
+);
+const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
+  ssr: false,
+});
+import "leaflet/dist/leaflet.css";
+
+// Custom Icon für den Marker
+let customIcon;
+if (typeof window !== "undefined") {
+  const L = require("leaflet");
+  customIcon = new L.Icon({
+    iconUrl: "/icons/mushroom-pin-icon.svg", // Pfad zu deinem benutzerdefinierten Icon im public/icons-Ordner
+    iconSize: [25, 25], // Größe des Icons
+    iconAnchor: [12, 41], // Positionierung des Icons
+  });
+}
 
 export default function AddEntryForm() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
+  // Standort und Adresse werden erst gesetzt, wenn die Geolocation verfügbar ist
+  const [location, setLocation] = useState(null);
+  const [address, setAddress] = useState(null);
   const [name, setName] = useState("");
   const [alternativeNames, setAlternativeNames] = useState("");
   const [scientificName, setScientificName] = useState("");
-  const [group, setGroup] = useState(""); // Für die Pilzgruppe
-  const [edibility, setEdibility] = useState(""); // Für die Verzehrbarkeit
+  const [group, setGroup] = useState("");
+  const [edibility, setEdibility] = useState("");
   const [notes, setNotes] = useState("");
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [uploadProgress, setUploadProgress] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({}); // Fehlerzustände initial leer
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false); // Neue State-Variable für den Submit
 
-  // Umgebungsvariablen auslesen
   const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
-  // Optionen für Gruppe und Verzehrbarkeit
   const groupOptions = [
     {
       value: "Röhrenpilze",
@@ -75,11 +102,7 @@ export default function AddEntryForm() {
       label: "tödlich giftig",
       icon: "/icons/deadly-toxic-icon.svg",
     },
-    {
-      value: "giftig",
-      label: "giftig",
-      icon: "/icons/toxic-icon.svg",
-    },
+    { value: "giftig", label: "giftig", icon: "/icons/toxic-icon.svg" },
     {
       value: "ungenießbar",
       label: "ungenießbar",
@@ -90,56 +113,70 @@ export default function AddEntryForm() {
       label: "eingeschränkt essbar",
       icon: "/icons/edible-limited-icon.svg",
     },
-    {
-      value: "essbar",
-      label: "essbar",
-      icon: "/icons/edible-icon.svg",
-    },
+    { value: "essbar", label: "essbar", icon: "/icons/edible-icon.svg" },
   ];
 
-  // Ladezustand oder nicht authentifizierten Zustand behandeln
-  if (status === "loading") {
-    return <p>Lade Authentifizierungsstatus...</p>;
-  }
+  useEffect(() => {
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ latitude, longitude });
+        },
+        (error) => {
+          console.error("Fehler beim Abrufen der Standortdaten:", error);
+        }
+      );
+    }
+  }, []);
 
-  if (!session) {
-    return <p>Bitte melde dich an, um einen Eintrag hinzuzufügen.</p>;
-  }
+  const fetchAddress = async (lat, lon) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+      );
+      const data = await response.json();
+      setAddress(data.display_name);
+    } catch (error) {
+      console.error("Fehler beim Abrufen der Adresse:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (location) {
+      fetchAddress(location.latitude, location.longitude);
+    }
+  }, [location]);
+
+  const handleMapClick = (e) => {
+    setLocation({
+      latitude: e.latlng.lat,
+      longitude: e.latlng.lng,
+    });
+    fetchAddress(e.latlng.lat, e.latlng.lng);
+  };
 
   const validateInputs = () => {
-    const errors = {};
-
-    if (!name.trim()) {
-      errors.name = "Bitte gib einen vermuteten Namen ein.";
-    }
-    if (!alternativeNames.trim()) {
-      errors.alternativeNames = "Bitte gib alternative Namen ein.";
-    }
-    if (!scientificName.trim()) {
-      errors.scientificName = "Bitte gib einen wissenschaftlichen Namen ein.";
-    }
-    if (!group) {
-      errors.group = "Bitte wähle eine Gruppe aus.";
-    }
-    if (!edibility) {
-      errors.edibility = "Bitte wähle die Verzehrbarkeit aus.";
-    }
-    if (images.length !== 3) {
-      errors.images = "Bitte wähle genau drei Bilder aus.";
-    }
-
-    return errors;
+    const validationErrors = {};
+    if (!name.trim())
+      validationErrors.name = "Bitte gib einen vermuteten Namen ein.";
+    if (!alternativeNames.trim())
+      validationErrors.alternativeNames = "Bitte gib alternative Namen ein.";
+    if (!scientificName.trim())
+      validationErrors.scientificName =
+        "Bitte gib einen wissenschaftlichen Namen ein.";
+    if (!group) validationErrors.group = "Bitte wähle eine Gruppe aus.";
+    if (!edibility)
+      validationErrors.edibility = "Bitte wähle die Verzehrbarkeit aus.";
+    if (images.length !== 3)
+      validationErrors.images = "Bitte wähle genau drei Bilder aus.";
+    return validationErrors;
   };
 
   const handleImageChange = (e) => {
     const files = e.target.files;
-
     if (files.length !== 3) {
-      setErrors({
-        ...errors,
-        images: "Bitte wähle genau drei Bilder aus.",
-      });
-      e.target.value = null; // Reset des Dateiauswahlfeldes
+      e.target.value = null;
       return;
     }
 
@@ -150,23 +187,15 @@ export default function AddEntryForm() {
       "image/heic",
       "image/heif",
     ];
-
     for (let i = 0; i < files.length; i++) {
       if (!allowedFormats.includes(files[i].type)) {
-        setErrors({
-          ...errors,
-          images:
-            "Bitte wähle Bilder im Format JPG, PNG, WEBP, HEIC oder HEIF aus.",
-        });
         e.target.value = null;
         return;
       }
     }
 
     setImages(files);
-    setErrors({ ...errors, images: null });
 
-    // Vorschauen der Bilder erstellen
     const previews = [];
     for (let i = 0; i < files.length; i++) {
       previews.push(URL.createObjectURL(files[i]));
@@ -176,40 +205,19 @@ export default function AddEntryForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    setIsSubmitted(true); // Setze den Submit-Status
     const validationErrors = validateInputs();
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+      setErrors(validationErrors); // Fehler werden nur beim Submit gesetzt
+      setErrorMessage("Bitte fülle alle erforderlichen Felder aus.");
       return;
     }
+    setErrorMessage("");
+    setErrors({}); // Fehler werden zurückgesetzt, wenn alles ausgefüllt ist
 
-    // Stelle sicher, dass der Browser Geolocation unterstützt
-    if (!navigator.geolocation) {
-      alert("Geolocation wird von deinem Browser nicht unterstützt.");
-      return;
-    }
-
-    setIsLoading(true); // Ladeindikator anzeigen
+    setIsLoading(true);
 
     try {
-      // Standortdaten abrufen
-      let location = null;
-      location = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            resolve({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            });
-          },
-          (error) => {
-            console.error("Fehler beim Abrufen der Standortdaten:", error);
-            resolve(null); // Weiter ohne Standortdaten
-          }
-        );
-      });
-
-      // Bilder zu Cloudinary hochladen
       const imageUrls = [];
       const progressArray = [0, 0, 0];
       setUploadProgress(progressArray);
@@ -232,7 +240,6 @@ export default function AddEntryForm() {
 
           if (response.ok && data.secure_url) {
             imageUrls.push(data.secure_url);
-            // Fortschritt aktualisieren
             progressArray[i] = 100;
             setUploadProgress([...progressArray]);
           } else {
@@ -244,7 +251,6 @@ export default function AddEntryForm() {
         }
       }
 
-      // Erstelle den Eintrag
       const entry = {
         name,
         alternativeNames,
@@ -255,10 +261,9 @@ export default function AddEntryForm() {
         images: imageUrls,
         date: new Date().toISOString(),
         location,
-        // `userId` wird in der API-Route hinzugefügt
+        address,
       };
 
-      // Sende den Eintrag an die API
       const res = await fetch("/api/entries", {
         method: "POST",
         headers: {
@@ -268,7 +273,6 @@ export default function AddEntryForm() {
       });
 
       if (res.ok) {
-        // Erfolgsmeldung und Weiterleitung zur Profilseite
         alert("Eintrag erfolgreich hinzugefügt!");
         router.push("/profile");
       } else {
@@ -278,11 +282,10 @@ export default function AddEntryForm() {
       console.error(error);
       alert(error.message);
     } finally {
-      setIsLoading(false); // Ladeindikator ausblenden
+      setIsLoading(false);
     }
   };
 
-  // Einstellungen für den Slider
   const sliderSettings = {
     dots: true,
     infinite: true,
@@ -312,9 +315,8 @@ export default function AddEntryForm() {
       )}
 
       <Instructions>
-        Bitte lade genau <strong>drei Bilder</strong> des Pilzes hoch: von der{" "}
-        <strong>Seite</strong>, von <strong>oben</strong> und von{" "}
-        <strong>unten</strong>. Diese Perspektiven sind für die Identifikation
+        Bitte lade genau drei Bilder des Pilzes hoch: Eins von der Seite, von
+        oben und von unten. Diese Perspektiven sind für die Identifikation
         notwendig.
       </Instructions>
 
@@ -326,11 +328,12 @@ export default function AddEntryForm() {
           accept="image/*"
           multiple
           onChange={handleImageChange}
-          required
         />
       </PrimaryButton>
 
-      {errors.images && <ErrorMessage>{errors.images}</ErrorMessage>}
+      {isSubmitted && errors.images && (
+        <ErrorMessage>Bilder sind erforderlich</ErrorMessage>
+      )}
 
       <Label htmlFor="name">Vermuteter Name des Pilzes</Label>
       <Input
@@ -339,9 +342,9 @@ export default function AddEntryForm() {
         placeholder="Hier eingeben"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        required
+        $isError={!!errors.name && isSubmitted}
       />
-      {errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
+      {isSubmitted && errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
 
       <Label htmlFor="alternativeNames">Alternative Namen</Label>
       <Input
@@ -350,9 +353,9 @@ export default function AddEntryForm() {
         placeholder="Hier eingeben"
         value={alternativeNames}
         onChange={(e) => setAlternativeNames(e.target.value)}
-        required
+        $isError={!!errors.alternativeNames && isSubmitted}
       />
-      {errors.alternativeNames && (
+      {isSubmitted && errors.alternativeNames && (
         <ErrorMessage>{errors.alternativeNames}</ErrorMessage>
       )}
 
@@ -363,9 +366,9 @@ export default function AddEntryForm() {
         placeholder="Hier eingeben"
         value={scientificName}
         onChange={(e) => setScientificName(e.target.value)}
-        required
+        $isError={!!errors.scientificName && isSubmitted}
       />
-      {errors.scientificName && (
+      {isSubmitted && errors.scientificName && (
         <ErrorMessage>{errors.scientificName}</ErrorMessage>
       )}
 
@@ -374,8 +377,8 @@ export default function AddEntryForm() {
         {groupOptions.map((option) => (
           <SelectButton
             key={option.value}
-            $isSelected={group === option.value} // Highlight den gewählten Button für "Gruppe"
-            onClick={() => setGroup(option.value)} // Setzt den ausgewählten Gruppenwert
+            $isSelected={group === option.value}
+            onClick={() => setGroup(option.value)}
           >
             <IconImage
               src={option.icon}
@@ -387,15 +390,17 @@ export default function AddEntryForm() {
           </SelectButton>
         ))}
       </ButtonGroup>
-      {errors.group && <ErrorMessage>{errors.group}</ErrorMessage>}
+      {isSubmitted && errors.group && (
+        <ErrorMessage>{errors.group}</ErrorMessage>
+      )}
 
       <Label htmlFor="edibility">Verzehrbarkeit</Label>
       <ButtonGroup>
         {edibilityOptions.map((option) => (
           <SelectButton
             key={option.value}
-            $isSelected={edibility === option.value} // Highlight den gewählten Button für "Verzehrbarkeit"
-            onClick={() => setEdibility(option.value)} // Setzt den ausgewählten Verzehrbarkeitswert
+            $isSelected={edibility === option.value}
+            onClick={() => setEdibility(option.value)}
           >
             <IconImage
               src={option.icon}
@@ -407,7 +412,9 @@ export default function AddEntryForm() {
           </SelectButton>
         ))}
       </ButtonGroup>
-      {errors.edibility && <ErrorMessage>{errors.edibility}</ErrorMessage>}
+      {isSubmitted && errors.edibility && (
+        <ErrorMessage>{errors.edibility}</ErrorMessage>
+      )}
 
       <Label htmlFor="notes">Zusätzliche Notizen</Label>
       <TextArea
@@ -417,10 +424,45 @@ export default function AddEntryForm() {
         onChange={(e) => setNotes(e.target.value)}
       />
 
+      <Label htmlFor="location">Adresse</Label>
+      <Input
+        id="location"
+        type="text"
+        value={address || "Adresse wird geladen..."}
+        readOnly
+      />
+
+      {location && typeof window !== "undefined" && (
+        <MapContainer
+          center={[location.latitude, location.longitude]}
+          zoom={13}
+          style={{ height: "300px", width: "100%" }}
+          whenCreated={(map) => map.on("click", handleMapClick)}
+        >
+          <TileLayer
+            attribution="&copy; OpenStreetMap contributors"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <Marker
+            position={[location.latitude, location.longitude]}
+            icon={customIcon}
+            draggable={true}
+            eventHandlers={{
+              dragend: (e) => {
+                const latlng = e.target.getLatLng();
+                setLocation({ latitude: latlng.lat, longitude: latlng.lng });
+                fetchAddress(latlng.lat, latlng.lng);
+              },
+            }}
+          >
+            <Popup>{address}</Popup>
+          </Marker>
+        </MapContainer>
+      )}
+
       <PrimaryButton type="submit" disabled={isLoading}>
         {isLoading ? "Wird hochgeladen..." : "Eintrag hinzufügen"}
       </PrimaryButton>
-      {isLoading && <p>Lade hoch, bitte warten...</p>}
     </Form>
   );
 }

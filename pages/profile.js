@@ -1,49 +1,43 @@
-// pages/profile.js
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import MainLayout from "../components/layout/MainLayout";
-import ProfileHeader from "../components/profile/ProfileHeader";
-import EntryList from "../components/entries/EntryList";
-import SearchBar from "../components/searchbar/Searchbar";
-import AddEntryButton from "../components/buttons/AddEntryButton";
+import { useEffect } from "react";
+import useSWR from "swr";
+import ProfileHeader from "@/components/profile/ProfileHeader";
+import EntryList from "@/components/entries/EntryList";
+import SearchBar from "@/components/searchbar/Searchbar";
+import AddEntryButton from "@/components/buttons/AddEntryButton";
+import { Container } from "@/styles";
+
+const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
-  const [entries, setEntries] = useState([]);
   const router = useRouter();
+
+  // Fetch entries using useSWR for caching
+  const { data: entries, error } = useSWR(
+    session ? "/api/entries" : null,
+    fetcher
+  );
 
   useEffect(() => {
     if (status === "loading") return;
-
     if (!session) {
       router.push("/");
-      return;
     }
-
-    const fetchEntries = async () => {
-      const res = await fetch("/api/entries");
-      if (res.ok) {
-        const data = await res.json();
-        setEntries(data);
-      } else {
-        console.error("Fehler beim Laden der Einträge");
-      }
-    };
-    fetchEntries();
   }, [session, status]);
 
-  if (status === "loading") {
+  if (status === "loading" || !entries) {
     return <p>Lade Authentifizierungsstatus...</p>;
   }
 
   return (
-    <MainLayout>
+    <Container>
       <ProfileHeader user={session?.user} />
-      <h2>Gesammelte Pilze ({entries.length})</h2>
+      <h1>Gesammelte Pilze ({entries.length})</h1>
       <SearchBar placeholder="Suchen..." />
       <EntryList entries={entries} />
       <AddEntryButton onClick={() => router.push("/addEntry")} />
-    </MainLayout>
+    </Container>
   );
 }

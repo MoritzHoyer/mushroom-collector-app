@@ -1,50 +1,59 @@
 import styled from "styled-components";
+import { spacing, fontSize, colors, borderRadius, shadows } from "../../styles";
 
 export const Form = styled.form`
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  max-width: 500px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding-bottom: ${({ theme }) => theme.spacing.footerPadding};
+  padding-bottom: ${spacing.footerPadding};
 `;
 
 export const Label = styled.label`
-  display: block; /* Dies ist notwendig, um das Label über dem Input anzuordnen */
-  text-align: left; /* Stelle sicher, dass alle Labels linksbündig ausgerichtet sind */
-  font-size: ${({ theme }) => theme.fontSize.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
-  color: ${({ theme }) => theme.colors.text};
-  width: 100%; /* Wichtig, damit das Label dieselbe Breite wie das Input-Feld hat */
+  display: block;
+  text-align: left;
+  font-size: ${fontSize.medium};
+  margin-bottom: ${spacing.small};
+  color: ${colors.text};
+  width: 100%;
 `;
 
 export const Instructions = styled.p`
-  font-size: ${({ theme }) => theme.fontSize.medium};
+  font-size: ${fontSize.medium};
   text-align: center;
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  margin-bottom: ${spacing.medium};
 `;
 
 export const PlaceholderContainer = styled.div`
   width: 100%;
-  height: 300px;
-  border: 2px dashed ${({ theme }) => theme.colors.border};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  height: 200px;
+  border: 2px dashed ${colors.border};
+  margin-bottom: ${spacing.medium};
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+
+  @media (min-width: 768px) {
+    height: 250px;
+  }
+
+  @media (min-width: 1024px) {
+    height: 300px;
+  }
 `;
 
 export const PlaceholderText = styled.p`
-  font-size: ${({ theme }) => theme.fontSize.large};
-  color: ${({ theme }) => theme.colors.text};
+  font-size: ${fontSize.large};
+  color: ${colors.text};
   text-align: center;
 `;
 
 export const SliderContainer = styled.div`
   width: 100%;
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  margin-bottom: ${spacing.medium};
 `;
 
 export const SliderImage = styled.img`
@@ -58,33 +67,51 @@ export const HiddenInput = styled.input`
 
 export const Input = styled.input`
   width: 100%;
-  padding: ${({ theme }) => theme.spacing.medium};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.input};
-  font-size: ${({ theme }) => theme.fontSize.medium}; /* Schriftgröße */
+  padding: ${spacing.medium};
+  margin-bottom: ${spacing.medium};
+  border: 1px solid ${colors.border};
+  border-radius: ${borderRadius.input};
+  font-size: ${fontSize.medium};
+
+  &:focus {
+    border-color: ${colors.primary};
+    box-shadow: ${shadows.focus};
+ 
+  @media (min-width: 768px) {
+    padding: ${spacing.large};
+  }
 `;
 
 export const TextArea = styled.textarea`
   width: 100%;
-  padding: ${({ theme }) => theme.spacing.medium};
+  padding: ${spacing.medium};
   min-height: 100px;
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.borderRadius.input};
-  font-size: ${({ theme }) => theme.fontSize.medium}; /* Schriftgröße */
+  margin-bottom: ${spacing.medium};
+  border: 1px solid ${colors.border};
+  border-radius: ${borderRadius.input};
+  font-size: ${fontSize.medium};
+
+  &:focus {
+    border-color: ${colors.primary};
+    box-shadow: ${shadows.focus};
+  }
+
+  @media (min-width: 768px) {
+    padding: ${spacing.large};
+  }
 `;
 
 export const ButtonGroup = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing.small};
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  gap: ${spacing.small};
+  margin-bottom: ${spacing.medium};
   justify-content: flex-start;
+  width: 100%;
+  align-items: flex-start;
 `;
-
 export const ErrorMessage = styled.div`
   color: red;
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  font-size: ${({ theme }) => theme.fontSize.small};
+  margin-bottom: ${spacing.medium};
+  font-size: ${fontSize.small};
 `;
