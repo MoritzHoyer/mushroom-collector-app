@@ -46,9 +46,10 @@ if (typeof window !== "undefined") {
   });
 }
 
-export default function AddEntryForm() {
+export default function AddEntryForm({ onMutate }) {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { edit } = router.query;
 
   // Zustand für Formularfelder und Ladezustände
   const [location, setLocation] = useState(null);
@@ -66,6 +67,7 @@ export default function AddEntryForm() {
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [entryData, setEntryData] = useState(null);
 
   // Cloudinary Upload-Konfiguration (aus Umgebungsvariablen)
   const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -200,6 +202,25 @@ export default function AddEntryForm() {
     setImagePreview(URL.createObjectURL(file));
   };
 
+  useEffect(() => {
+    if (edit) {
+      fetch(`/api/entries/${edit}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setEntryData(data);
+          // Fülle die Formularfelder mit den geladenen Daten
+          setName(data.name);
+          setScientificName(data.scientificName);
+          setGroup(data.group);
+          setEdibility(data.edibility);
+          setNotes(data.notes);
+          setImage(data.image);
+          setLocation(data.location);
+          setAddress(data.address);
+        });
+    }
+  }, [edit]);
+
   // Eventhandler für das Absenden des Formulars
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -211,6 +232,7 @@ export default function AddEntryForm() {
       return;
     }
 
+    // Validierung der Benutzereingaben
     const validationErrors = validateInputs();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -222,55 +244,80 @@ export default function AddEntryForm() {
 
     setIsLoading(true);
 
-    // Hochladen des Bildes zu Cloudinary
     try {
-      const formData = new FormData();
-      formData.append("file", image);
-      formData.append("upload_preset", UPLOAD_PRESET);
+      let imageUrl = image;
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
+      // Wenn ein neues Bild hochgeladen wurde
+      if (image && typeof image !== "string") {
+        const formData = new FormData();
+        formData.append("file", image);
+        formData.append("upload_preset", UPLOAD_PRESET);
+
+        const imageResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+        const imageData = await imageResponse.json();
+
+        if (!imageResponse.ok || !imageData.secure_url) {
+          throw new Error("Fehler beim Hochladen des Bildes.");
         }
-      );
-      const data = await response.json();
-      console.log("data", data);
-
-      if (!response.ok || !data.secure_url) {
-        throw new Error("Fehler beim Hochladen des Bildes.");
+        imageUrl = imageData.secure_url;
       }
 
-      // Erstellen des Eintrags
-      const entry = {
+      // Eintrag-Daten
+      const entryData = {
         name,
-        alternativeNames, // Optional
+        alternativeNames,
         scientificName,
         group,
         edibility,
-        notes, // Optional
-        image: data.secure_url,
+        notes,
+        image: imageUrl,
         date: new Date().toISOString(),
         location,
         address,
         userId: session.user.id,
       };
 
-      const res = await fetch("/api/entries", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Authorization: `Bearer ${session.token}`,
-        },
-        body: JSON.stringify(entry),
-      });
+      let res;
+      if (edit) {
+        // PUT-Anfrage zum Bearbeiten des Eintrags
+        res = await fetch(`/api/entries/${edit}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(entryData),
+        });
 
-      if (res.ok) {
-        alert("Eintrag erfolgreich hinzugefügt!");
-        router.push("/profile");
+        if (res.ok) {
+          alert("Eintrag erfolgreich aktualisiert!");
+          onMutate("/api/entries"); // Einträge neu validieren
+          router.push("/profile");
+        } else {
+          throw new Error("Fehler beim Aktualisieren des Eintrags.");
+        }
       } else {
-        throw new Error("Fehler beim Hinzufügen des Eintrags.");
+        // POST-Anfrage zum Erstellen eines neuen Eintrags
+        res = await fetch("/api/entries", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(entryData),
+        });
+
+        if (res.ok) {
+          alert("Eintrag erfolgreich hinzugefügt!");
+          onMutate("/api/entries"); // Einträge neu validieren
+          router.push("/profile");
+        } else {
+          throw new Error("Fehler beim Hinzufügen des Eintrags.");
+        }
       }
     } catch (error) {
       console.error(error);
