@@ -8,7 +8,7 @@ const EntrySchema = new mongoose.Schema({
   group: { type: String, required: true },
   edibility: { type: String, required: true },
   notes: String,
-  images: [String],
+  image: String,
   date: { type: Date, default: Date.now },
   location: {
     latitude: Number,

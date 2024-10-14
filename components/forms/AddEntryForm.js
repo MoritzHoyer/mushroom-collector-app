@@ -2,14 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import Slider from "react-slick";
 import {
   Form,
-  Instructions,
   PlaceholderContainer,
   PlaceholderText,
-  SliderContainer,
-  SliderImage,
   HiddenInput,
   Label,
   Input,
@@ -19,8 +15,9 @@ import {
 } from "../styles/AddEntryFormStyle";
 import { PrimaryButton } from "../styles/PrimaryButtonStyle";
 import { SelectButton, IconImage } from "../styles/SelectButtonStyle";
+import Image from "next/image";
 
-// Dynamische Imports für Leaflet-Komponenten
+// Dynamische Imports für Leaflet-Komponenten (Client-seitiges Rendering)
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
@@ -38,14 +35,14 @@ const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
 });
 import "leaflet/dist/leaflet.css";
 
-// Custom Icon für den Marker
+// Custom Icon für den Marker, benötigt die Leaflet-Bibliothek im Browser
 let customIcon;
 if (typeof window !== "undefined") {
   const L = require("leaflet");
   customIcon = new L.Icon({
-    iconUrl: "/icons/mushroom-pin-icon.svg", // Pfad zu deinem benutzerdefinierten Icon im public/icons-Ordner
-    iconSize: [25, 25], // Größe des Icons
-    iconAnchor: [12, 41], // Positionierung des Icons
+    iconUrl: "/icons/mushroom-pin-icon.svg",
+    iconSize: [25, 25],
+    iconAnchor: [12, 41],
   });
 }
 
@@ -53,26 +50,28 @@ export default function AddEntryForm() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // Standort und Adresse werden erst gesetzt, wenn die Geolocation verfügbar ist
+  // Zustand für Formularfelder und Ladezustände
   const [location, setLocation] = useState(null);
   const [address, setAddress] = useState(null);
   const [name, setName] = useState("");
-  const [alternativeNames, setAlternativeNames] = useState("");
+  const [alternativeNames, setAlternativeNames] = useState(""); // Optional
   const [scientificName, setScientificName] = useState("");
   const [group, setGroup] = useState("");
   const [edibility, setEdibility] = useState("");
-  const [notes, setNotes] = useState("");
-  const [images, setImages] = useState([]);
-  const [imagePreviews, setImagePreviews] = useState([]);
-  const [uploadProgress, setUploadProgress] = useState([]);
+  const [notes, setNotes] = useState(""); // Optional
+  const [image, setImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({}); // Fehlerzustände initial leer
+  const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmitted, setIsSubmitted] = useState(false); // Neue State-Variable für den Submit
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
+  // Cloudinary Upload-Konfiguration (aus Umgebungsvariablen)
   const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
   const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
+  // Optionen für Pilzgruppen und Verzehrbarkeit mit zugehörigen Icons
   const groupOptions = [
     {
       value: "Röhrenpilze",
@@ -116,6 +115,7 @@ export default function AddEntryForm() {
     { value: "essbar", label: "essbar", icon: "/icons/edible-icon.svg" },
   ];
 
+  // Geolocation-Abruf beim Laden der Komponente (User Location)
   useEffect(() => {
     if (typeof window !== "undefined" && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -130,6 +130,7 @@ export default function AddEntryForm() {
     }
   }, []);
 
+  // Funktion zum Abrufen der Adresse anhand der Geokoordinaten
   const fetchAddress = async (lat, lon) => {
     try {
       const response = await fetch(
@@ -142,12 +143,14 @@ export default function AddEntryForm() {
     }
   };
 
+  // Aktualisiere Adresse, sobald eine neue Position gesetzt wird
   useEffect(() => {
     if (location) {
       fetchAddress(location.latitude, location.longitude);
     }
   }, [location]);
 
+  // Eventhandler für das Klicken auf die Karte (setzt neue Koordinaten)
   const handleMapClick = (e) => {
     setLocation({
       latitude: e.latlng.lat,
@@ -156,29 +159,26 @@ export default function AddEntryForm() {
     fetchAddress(e.latlng.lat, e.latlng.lng);
   };
 
+  // Validierung der Benutzereingaben im Formular
   const validateInputs = () => {
     const validationErrors = {};
     if (!name.trim())
       validationErrors.name = "Bitte gib einen vermuteten Namen ein.";
-    if (!alternativeNames.trim())
-      validationErrors.alternativeNames = "Bitte gib alternative Namen ein.";
     if (!scientificName.trim())
       validationErrors.scientificName =
         "Bitte gib einen wissenschaftlichen Namen ein.";
     if (!group) validationErrors.group = "Bitte wähle eine Gruppe aus.";
     if (!edibility)
       validationErrors.edibility = "Bitte wähle die Verzehrbarkeit aus.";
-    if (images.length !== 3)
-      validationErrors.images = "Bitte wähle genau drei Bilder aus.";
+    if (!image) validationErrors.image = "Bitte lade ein Bild hoch.";
     return validationErrors;
   };
 
+  // Eventhandler für das Hochladen von Bildern
   const handleImageChange = (e) => {
-    const files = e.target.files;
-    if (files.length !== 3) {
-      e.target.value = null;
-      return;
-    }
+    const file = e.target.files[0];
+
+    if (!file) return;
 
     const allowedFormats = [
       "image/jpeg",
@@ -187,87 +187,81 @@ export default function AddEntryForm() {
       "image/heic",
       "image/heif",
     ];
-    for (let i = 0; i < files.length; i++) {
-      if (!allowedFormats.includes(files[i].type)) {
-        e.target.value = null;
-        return;
-      }
+
+    if (!allowedFormats.includes(file.type)) {
+      setErrors({
+        image:
+          "Ungültiges Dateiformat. Bitte lade ein Bild im Format JPG, PNG, WEBP, HEIC oder HEIF hoch.",
+      });
+      return;
     }
 
-    setImages(files);
-
-    const previews = [];
-    for (let i = 0; i < files.length; i++) {
-      previews.push(URL.createObjectURL(files[i]));
-    }
-    setImagePreviews(previews);
+    setImage(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
+  // Eventhandler für das Absenden des Formulars
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true); // Setze den Submit-Status
+    setIsSubmitted(true);
+
+    // Überprüfung, ob der Benutzer eingeloggt ist
+    if (status !== "authenticated") {
+      setErrorMessage("Bitte logge dich ein, um einen Eintrag hinzuzufügen.");
+      return;
+    }
+
     const validationErrors = validateInputs();
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors); // Fehler werden nur beim Submit gesetzt
+      setErrors(validationErrors);
       setErrorMessage("Bitte fülle alle erforderlichen Felder aus.");
       return;
     }
     setErrorMessage("");
-    setErrors({}); // Fehler werden zurückgesetzt, wenn alles ausgefüllt ist
+    setErrors({});
 
     setIsLoading(true);
 
+    // Hochladen des Bildes zu Cloudinary
     try {
-      const imageUrls = [];
-      const progressArray = [0, 0, 0];
-      setUploadProgress(progressArray);
+      const formData = new FormData();
+      formData.append("file", image);
+      formData.append("upload_preset", UPLOAD_PRESET);
 
-      for (let i = 0; i < images.length; i++) {
-        const formData = new FormData();
-        formData.append("file", images[i]);
-        formData.append("upload_preset", UPLOAD_PRESET);
-
-        try {
-          const response = await fetch(
-            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
-            {
-              method: "POST",
-              body: formData,
-            }
-          );
-
-          const data = await response.json();
-
-          if (response.ok && data.secure_url) {
-            imageUrls.push(data.secure_url);
-            progressArray[i] = 100;
-            setUploadProgress([...progressArray]);
-          } else {
-            throw new Error("Fehler beim Hochladen der Bilder.");
-          }
-        } catch (error) {
-          console.error("Fehler beim Hochladen des Bildes:", error);
-          throw error;
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
         }
+      );
+      const data = await response.json();
+      console.log("data", data);
+
+      if (!response.ok || !data.secure_url) {
+        throw new Error("Fehler beim Hochladen des Bildes.");
       }
 
+      // Erstellen des Eintrags
       const entry = {
         name,
-        alternativeNames,
+        alternativeNames, // Optional
         scientificName,
         group,
         edibility,
-        notes,
-        images: imageUrls,
+        notes, // Optional
+        image: data.secure_url,
         date: new Date().toISOString(),
         location,
         address,
+        userId: session.user.id,
       };
 
       const res = await fetch("/api/entries", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          // Authorization: `Bearer ${session.token}`,
         },
         body: JSON.stringify(entry),
       });
@@ -286,53 +280,47 @@ export default function AddEntryForm() {
     }
   };
 
-  const sliderSettings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-  };
-
   return (
     <Form onSubmit={handleSubmit}>
-      {imagePreviews.length > 0 ? (
-        <SliderContainer>
-          <Slider {...sliderSettings}>
-            {imagePreviews.map((src, index) => (
-              <div key={index}>
-                <SliderImage src={src} alt={`Bild ${index + 1}`} />
-              </div>
-            ))}
-          </Slider>
-        </SliderContainer>
+      {/* Bildvorschau oder Platzhalter */}
+      {imagePreview ? (
+        <div
+          style={{ width: "100%", paddingTop: "100%", position: "relative" }}
+        >
+          <Image
+            src={imagePreview}
+            alt="Vorschau des hochgeladenen Bildes"
+            fill
+            style={{ objectFit: "cover" }}
+          />
+        </div>
       ) : (
-        <PlaceholderContainer>
+        <PlaceholderContainer
+          style={{
+            width: "100%",
+            paddingTop: "100%", // 1:1 Seitenverhältnis für quadratischen Platzhalter
+            position: "relative",
+          }}
+        >
           <PlaceholderText>
-            Hier werden deine hochgeladenen Bilder angezeigt.
+            Hier wird das hochgeladene Bild angezeigt.
           </PlaceholderText>
         </PlaceholderContainer>
       )}
 
-      <Instructions>
-        Bitte lade genau drei Bilder des Pilzes hoch: Eins von der Seite, von
-        oben und von unten. Diese Perspektiven sind für die Identifikation
-        notwendig.
-      </Instructions>
-
-      <PrimaryButton htmlFor="image-upload">
-        Datei auswählen
+      {/* Formularfelder */}
+      <PrimaryButton as="label" htmlFor="image-upload">
+        Bild auswählen
         <HiddenInput
           id="image-upload"
           type="file"
           accept="image/*"
-          multiple
           onChange={handleImageChange}
         />
       </PrimaryButton>
 
-      {isSubmitted && errors.images && (
-        <ErrorMessage>Bilder sind erforderlich</ErrorMessage>
+      {isSubmitted && errors.image && (
+        <ErrorMessage>{errors.image}</ErrorMessage>
       )}
 
       <Label htmlFor="name">Vermuteter Name des Pilzes</Label>
@@ -353,11 +341,7 @@ export default function AddEntryForm() {
         placeholder="Hier eingeben"
         value={alternativeNames}
         onChange={(e) => setAlternativeNames(e.target.value)}
-        $isError={!!errors.alternativeNames && isSubmitted}
       />
-      {isSubmitted && errors.alternativeNames && (
-        <ErrorMessage>{errors.alternativeNames}</ErrorMessage>
-      )}
 
       <Label htmlFor="scientificName">Wissenschaftlicher Name</Label>
       <Input
@@ -378,7 +362,10 @@ export default function AddEntryForm() {
           <SelectButton
             key={option.value}
             $isSelected={group === option.value}
-            onClick={() => setGroup(option.value)}
+            onClick={(e) => {
+              e.preventDefault();
+              setGroup(option.value);
+            }}
           >
             <IconImage
               src={option.icon}
@@ -400,7 +387,10 @@ export default function AddEntryForm() {
           <SelectButton
             key={option.value}
             $isSelected={edibility === option.value}
-            onClick={() => setEdibility(option.value)}
+            onClick={(e) => {
+              e.preventDefault();
+              setEdibility(option.value);
+            }}
           >
             <IconImage
               src={option.icon}
@@ -432,6 +422,7 @@ export default function AddEntryForm() {
         readOnly
       />
 
+      {/* Karte zur Auswahl der Position */}
       {location && typeof window !== "undefined" && (
         <MapContainer
           center={[location.latitude, location.longitude]}
@@ -460,6 +451,7 @@ export default function AddEntryForm() {
         </MapContainer>
       )}
 
+      {/* Submit-Button */}
       <PrimaryButton type="submit" disabled={isLoading}>
         {isLoading ? "Wird hochgeladen..." : "Eintrag hinzufügen"}
       </PrimaryButton>

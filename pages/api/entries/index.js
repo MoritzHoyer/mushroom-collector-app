@@ -3,19 +3,13 @@ import connect from "@/db/connect";
 import Entry from "@/db/models/Entry";
 
 export default async function handler(req, res) {
-  const session = await getSession({ req });
-  if (!session) {
-    res.status(401).json({ message: "Nicht authentifiziert" });
-    return;
-  }
-
   await connect();
 
   if (req.method === "POST") {
     try {
       const entryData = req.body;
-      entryData.userId = session.user.id;
-
+      // entryData.userId = session.user.id;
+      console.log("entryData", entryData);
       const newEntry = new Entry(entryData);
       await newEntry.save();
 
@@ -28,6 +22,11 @@ export default async function handler(req, res) {
     }
   } else if (req.method === "GET") {
     try {
+      const session = await getSession({ req });
+      if (!session) {
+        res.status(401).json({ message: "Nicht authentifiziert" });
+        return;
+      }
       const entries = await Entry.find({ userId: session.user.id }).exec();
       res.status(200).json(entries);
     } catch (error) {

@@ -8,10 +8,11 @@ import {
 } from "../styles/EntryCardStyle";
 
 export default function EntryCard({ entry }) {
+  console.log(entry);
   return (
     <Link href={`/entries/${entry._id}`} passHref>
       <EntryCardContainer>
-        <EntryImage src={entry.images[0]} alt={entry.name} />
+        <EntryImage src={entry.image} alt={entry.name} />
         <EntryName>{entry.name}</EntryName>
         <EntryInfo>Wissenschaftlicher Name: {entry.scientificName}</EntryInfo>
         <EntryInfo>
