@@ -3,9 +3,13 @@ import { useRouter } from "next/router";
 import {
   EntryCardContainer,
   EntryImage,
+  TextWrapper,
   EntryName,
   EntryInfo,
+  IconContainer,
+  IconButton,
 } from "../styles/EntryCardStyle";
+import Image from "next/image"; // Importiere Image für SVGs
 
 export default function EntryCard({ entry, onMutate, onDelete }) {
   const router = useRouter();
@@ -27,21 +31,39 @@ export default function EntryCard({ entry, onMutate, onDelete }) {
   return (
     <EntryCardContainer>
       <EntryImage src={entry.image} alt={entry.name} />
-      <EntryName>{entry.name}</EntryName>
-      <EntryInfo>Wissenschaftlicher Name: {entry.scientificName}</EntryInfo>
-      <EntryInfo>
-        Standort: Latitude {entry.location.latitude}, Longitude{" "}
-        {entry.location.longitude}
-      </EntryInfo>
-      <EntryInfo>Datum: {new Date(entry.date).toLocaleDateString()}</EntryInfo>
+      <TextWrapper>
+        <EntryName>{entry.name}</EntryName>
+        <EntryInfo>Wissenschaftlicher Name: {entry.scientificName}</EntryInfo>
+        <EntryInfo>
+          Standort: Latitude {entry.location.latitude}, Longitude{" "}
+          {entry.location.longitude}
+        </EntryInfo>
+        <EntryInfo>
+          Datum: {new Date(entry.date).toLocaleDateString()}
+        </EntryInfo>
 
-      {/* Bearbeiten Button */}
-      <button onClick={() => router.push(`/addEntry?edit=${entry._id}`)}>
-        Bearbeiten
-      </button>
-
-      {/* Löschen Button */}
-      <button onClick={handleDelete}>Löschen</button>
+        {/* Icons innerhalb des TextWrappers */}
+        <IconContainer>
+          <IconButton
+            onClick={() => router.push(`/addEntry?edit=${entry._id}`)}
+          >
+            <Image
+              src="/icons/edit-icon.svg"
+              alt="Edit Entry"
+              width={24}
+              height={24}
+            />
+          </IconButton>
+          <IconButton onClick={handleDelete}>
+            <Image
+              src="/icons/delete-icon.svg"
+              alt="Delete Entry"
+              width={24}
+              height={24}
+            />
+          </IconButton>
+        </IconContainer>
+      </TextWrapper>
     </EntryCardContainer>
   );
 }

@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { spacing, shadows } from "../../styles";
+import { spacing } from "../../styles";
 
 export const HeaderContainer = styled.div`
   display: flex;

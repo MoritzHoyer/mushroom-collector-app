@@ -1,10 +1,8 @@
 import React from "react";
-import Image from "next/image";
 import {
   HeaderContainer,
   ProfilePicture,
   Username,
-  SettingsButton,
 } from "../styles/ProfileHeaderStyle";
 
 export default function ProfileHeader({ user }) {
