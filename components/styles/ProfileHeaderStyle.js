@@ -26,15 +26,3 @@ export const Username = styled.h1`
     font-size: 24px;
   }
 `;
-
-export const SettingsButton = styled.button`
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-
-  &:focus {
-    outline: none;
-    box-shadow: ${shadows.focus};
-  }
-`;

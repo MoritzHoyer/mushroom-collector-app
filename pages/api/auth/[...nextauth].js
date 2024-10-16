@@ -36,5 +36,10 @@ export default NextAuth({
       session.user.id = user.id;
       return session;
     },
+
+    // Redirect callback to route user to the 'identify' page after login
+    async redirect({ url, baseUrl }) {
+      return baseUrl + "/identify";
+    },
   },
 });

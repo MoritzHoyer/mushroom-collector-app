@@ -8,29 +8,23 @@ export const Form = styled.form`
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding-bottom: ${spacing.footerPadding};
 `;
 
 export const Label = styled.label`
   display: block;
   text-align: left;
   font-size: ${fontSize.medium};
-  margin-bottom: ${spacing.small};
+  margin-bottom: ${spacing.medium};
   color: ${colors.text};
   width: 100%;
-`;
-
-export const Instructions = styled.p`
-  font-size: ${fontSize.medium};
-  text-align: center;
-  margin-bottom: ${spacing.medium};
 `;
 
 export const PlaceholderContainer = styled.div`
   width: 100%;
   height: 200px;
-  border: 2px dashed ${colors.border};
-  margin-bottom: ${spacing.medium};
+  border: 1.5px solid ${colors.border};
+  border-radius: 28px;
+  margin-bottom: ${spacing.large};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,7 +42,7 @@ export const PlaceholderContainer = styled.div`
 
 export const PlaceholderText = styled.p`
   font-size: ${fontSize.large};
-  color: ${colors.text};
+  color: ${colors.tertiary};
   text-align: center;
   position: absolute;
   top: 50%;
@@ -58,16 +52,6 @@ export const PlaceholderText = styled.p`
   pointer-events: none;
 `;
 
-export const SliderContainer = styled.div`
-  width: 100%;
-  margin-bottom: ${spacing.medium};
-`;
-
-export const SliderImage = styled.img`
-  width: 100%;
-  height: auto;
-`;
-
 export const HiddenInput = styled.input`
   display: none;
 `;
@@ -75,14 +59,13 @@ export const HiddenInput = styled.input`
 export const Input = styled.input`
   width: 100%;
   padding: ${spacing.medium};
-  margin-bottom: ${spacing.medium};
-  border: 1px solid ${colors.border};
-  border-radius: ${borderRadius.input};
+  margin-bottom: ${spacing.large};
+  border: 1.5px solid ${colors.border};
+  border-radius: ${borderRadius.button};
   font-size: ${fontSize.medium};
 
   &:focus {
     border-color: ${colors.primary};
-    box-shadow: ${shadows.focus};
  
   @media (min-width: 768px) {
     padding: ${spacing.large};
@@ -93,9 +76,9 @@ export const TextArea = styled.textarea`
   width: 100%;
   padding: ${spacing.medium};
   min-height: 100px;
-  margin-bottom: ${spacing.medium};
+  margin-bottom: ${spacing.extralarge};
   border: 1px solid ${colors.border};
-  border-radius: ${borderRadius.input};
+  border-radius: 16px;
   font-size: ${fontSize.medium};
 
   &:focus {
@@ -112,13 +95,13 @@ export const ButtonGroup = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: ${spacing.small};
-  margin-bottom: ${spacing.medium};
+  margin-bottom: ${spacing.extralarge};
   justify-content: flex-start;
   width: 100%;
   align-items: flex-start;
 `;
 export const ErrorMessage = styled.div`
-  color: red;
+  color: ${colors.error};
   margin-bottom: ${spacing.medium};
   font-size: ${fontSize.small};
 `;

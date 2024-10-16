@@ -14,15 +14,11 @@ export const GlobalStyle = createGlobalStyle`
     width: 100%;
     height: 100%;
     font-family: 'Bricolage Grotesque', sans-serif;
-    background-color: #ffffff;
-    color: #4a5568;
-  }
-
-  body {
+    background-color: #FBF8F6;
+    color: #303133;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    padding: 15px;
   }
 
   h1, h2, h3, h4, h5, h6, strong {
@@ -37,7 +33,8 @@ export const GlobalStyle = createGlobalStyle`
 
   @media (min-width: 768px) {
     body {
-      padding: 20px;
+      padding-left: 20px;
+      padding-right: 20px;
     }
 
     h1 {
@@ -51,7 +48,8 @@ export const GlobalStyle = createGlobalStyle`
 
   @media (min-width: 1024px) {
     body {
-      padding: 30px;
+      padding-left: 30px;
+      padding-right: 30px;
     }
 
     h1 {
@@ -65,21 +63,30 @@ export const GlobalStyle = createGlobalStyle`
 `;
 
 export const colors = {
-  primary: "#5a67d8",
-  primaryHover: "#434190",
+  primary: "#A94B2B",
+  secondary: "#F1E9DC",
+  tertiary: "#C0BBAF",
+  primaryHover: "##803824",
+  tertiaryHover: "#958B71",
+  boletes: "#E9C7DD",
+  lamellaAnnulus: "#EFB857",
+  lamella: "#C1C761",
+  otherMushrooms: "#94BFE1",
   disabled: "#a0aec0",
-  text: "#4a5568",
-  background: "#ffffff",
+  text: "#303133",
+  background: "#FBF8F6",
   backgroundHover: "#f0f0f0",
   error: "#e53e3e",
   success: "#48bb78",
+  border: "#C0BBAF",
 };
 
 export const spacing = {
   small: "5px",
   medium: "10px",
-  large: "20px",
-  footerPadding: "80px",
+  large: "15px",
+  extralarge: "30px",
+  footerPadding: "30px",
 };
 
 export const borderRadius = {
@@ -90,7 +97,7 @@ export const borderRadius = {
 export const fontSize = {
   small: "12px",
   medium: "16px",
-  large: "20px",
+  large: "24px",
 };
 
 export const iconSize = {
@@ -106,18 +113,14 @@ export const Container = styled.div`
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: ${spacing.small};
+  padding: 50px ${spacing.large} 50px ${spacing.large};
   flex: 1;
-
-  @media (min-width: 768px) {
-    padding: ${spacing.large};
-  }
 `;
 
 export const shadows = {
-  focus: "0 0 5px rgba(90, 103, 216, 0.5)",
-  hover: "0 4px 6px rgba(0, 0, 0, 0.1)",
-  cardHover: "0 4px 12px rgba(0, 0, 0, 0.15)",
+  focus: "0 0 5px rgba(169, 75, 43, 0.5)",
+  hover: "0 4px 6px rgba(48, 49, 51, 0.1)",
+  cardHover: "0 4px 12px rgba(48, 49, 51, 0.15)",
 };
 
 export const ErrorMessage = styled.p`

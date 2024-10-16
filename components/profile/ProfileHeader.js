@@ -18,14 +18,6 @@ export default function ProfileHeader({ user }) {
       ) : (
         <Username>Loading...</Username> // Fallback, wenn Benutzer nicht vorhanden ist
       )}
-      <SettingsButton onClick={() => console.log("Settings Clicked")}>
-        <Image
-          src="/icons/settings-icon.svg"
-          alt="Settings Icon"
-          width={24}
-          height={24}
-        />
-      </SettingsButton>
     </HeaderContainer>
   );
 }

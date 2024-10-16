@@ -1,15 +1,38 @@
-import Header from "@/components/layout/Header";
-import LoginButton from "@/components/buttons/LoginButton";
-import SearchBar from "@/components/searchbar/Searchbar";
-import { Container } from "@/styles";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import Image from "next/image";
 
-export default function HomePage() {
+const HomePage = () => {
+  const router = useRouter();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.push("/login"); // Weiterleitung zur Login-Seite nach 3 Sekunden
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [router]);
+
   return (
-    <Container>
-      <Header />
-      <h1>Pilze bestimmen</h1>
-      <LoginButton />
-      <SearchBar placeholder="Suchen..." />
-    </Container>
+    <div
+      style={{
+        height: "100vh", // Festes Viewport, verhindert Scrollen
+        width: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        overflow: "hidden", // Verhindert Scrollen
+      }}
+    >
+      <Image
+        src="/shroomie-logo_color_01.svg"
+        alt="Shroomie Logo"
+        width={300}
+        height={300}
+        priority
+      />
+    </div>
   );
-}
+};
+
+export default HomePage;
