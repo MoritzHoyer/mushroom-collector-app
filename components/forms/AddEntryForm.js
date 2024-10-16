@@ -14,7 +14,9 @@ import {
   ErrorMessage,
 } from "../styles/AddEntryFormStyle";
 import { PrimaryButton } from "../styles/PrimaryButtonStyle";
-import { SelectButton, IconImage } from "../styles/SelectButtonStyle";
+import { IconImage } from "../styles/SelectButtonStyle";
+import { SelectSpeciesButton } from "../styles/SpeciesButtonStyle"; // Neue Komponente
+import { SelectEdibilityButton } from "../styles/EdibilityButtonStyle"; // Neue Komponente
 import Image from "next/image";
 
 // Dynamische Imports für Leaflet-Komponenten (Client-seitiges Rendering)
@@ -76,45 +78,45 @@ export default function AddEntryForm({ onMutate }) {
   // Optionen für Pilzgruppen und Verzehrbarkeit mit zugehörigen Icons
   const groupOptions = [
     {
-      value: "Röhrenpilze",
-      label: "Röhrenpilze",
+      value: "boletes",
+      label: "Boletes",
       icon: "/icons/boletes-icon.svg",
     },
     {
-      value: "Lamellenpilze, Stiel mit Ring",
-      label: "Lamellenpilze, Stiel mit Ring",
+      value: "lamellaAnnulus",
+      label: "Lamellar Annulus",
       icon: "/icons/lamellar-annulus-icon.svg",
     },
     {
-      value: "Lamellenpilze, Stiel ohne Ring",
-      label: "Lamellenpilze, Stiel ohne Ring",
+      value: "lamella",
+      label: "Lamellar",
       icon: "/icons/lamellar-icon.svg",
     },
     {
-      value: "Sonstige Pilze",
-      label: "Sonstige Pilze",
+      value: "otherMushrooms",
+      label: "Other Mushrooms",
       icon: "/icons/other-mushrooms-icon.svg",
     },
   ];
 
   const edibilityOptions = [
     {
-      value: "tödlich giftig",
-      label: "tödlich giftig",
+      value: "deadly toxic",
+      label: "deadly toxic",
       icon: "/icons/deadly-toxic-icon.svg",
     },
-    { value: "giftig", label: "giftig", icon: "/icons/toxic-icon.svg" },
+    { value: "toxic", label: "toxic", icon: "/icons/toxic-icon.svg" },
     {
-      value: "ungenießbar",
-      label: "ungenießbar",
+      value: "inedible",
+      label: "inedible",
       icon: "/icons/inedible-icon.svg",
     },
     {
-      value: "eingeschränkt essbar",
-      label: "eingeschränkt essbar",
+      value: "edible limited",
+      label: "edible limited",
       icon: "/icons/edible-limited-icon.svg",
     },
-    { value: "essbar", label: "essbar", icon: "/icons/edible-icon.svg" },
+    { value: "edible", label: "edible", icon: "/icons/edible-icon.svg" },
   ];
 
   // Geolocation-Abruf beim Laden der Komponente (User Location)
@@ -126,7 +128,7 @@ export default function AddEntryForm({ onMutate }) {
           setLocation({ latitude, longitude });
         },
         (error) => {
-          console.error("Fehler beim Abrufen der Standortdaten:", error);
+          console.error("Error when retrieving location data:", error);
         }
       );
     }
@@ -141,7 +143,7 @@ export default function AddEntryForm({ onMutate }) {
       const data = await response.json();
       setAddress(data.display_name);
     } catch (error) {
-      console.error("Fehler beim Abrufen der Adresse:", error);
+      console.error("Error when retrieving the address:", error);
     }
   };
 
@@ -164,15 +166,13 @@ export default function AddEntryForm({ onMutate }) {
   // Validierung der Benutzereingaben im Formular
   const validateInputs = () => {
     const validationErrors = {};
-    if (!name.trim())
-      validationErrors.name = "Bitte gib einen vermuteten Namen ein.";
+    if (!name.trim()) validationErrors.name = "Please enter a suspected name.";
     if (!scientificName.trim())
-      validationErrors.scientificName =
-        "Bitte gib einen wissenschaftlichen Namen ein.";
-    if (!group) validationErrors.group = "Bitte wähle eine Gruppe aus.";
+      validationErrors.scientificName = "Please enter a scientific name.";
+    if (!group) validationErrors.group = "Please select a species.";
     if (!edibility)
       validationErrors.edibility = "Bitte wähle die Verzehrbarkeit aus.";
-    if (!image) validationErrors.image = "Bitte lade ein Bild hoch.";
+    if (!image) validationErrors.image = "Please upload an image.";
     return validationErrors;
   };
 
@@ -193,7 +193,7 @@ export default function AddEntryForm({ onMutate }) {
     if (!allowedFormats.includes(file.type)) {
       setErrors({
         image:
-          "Ungültiges Dateiformat. Bitte lade ein Bild im Format JPG, PNG, WEBP, HEIC oder HEIF hoch.",
+          "Invalid file format. Please upload an image in JPG, PNG, WEBP, HEIC or HEIF format.",
       });
       return;
     }
@@ -228,7 +228,7 @@ export default function AddEntryForm({ onMutate }) {
 
     // Überprüfung, ob der Benutzer eingeloggt ist
     if (status !== "authenticated") {
-      setErrorMessage("Bitte logge dich ein, um einen Eintrag hinzuzufügen.");
+      setErrorMessage("Please log in to add an entry.");
       return;
     }
 
@@ -236,7 +236,7 @@ export default function AddEntryForm({ onMutate }) {
     const validationErrors = validateInputs();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      setErrorMessage("Bitte fülle alle erforderlichen Felder aus.");
+      setErrorMessage("Please fill in all required fields.");
       return;
     }
     setErrorMessage("");
@@ -263,7 +263,7 @@ export default function AddEntryForm({ onMutate }) {
         const imageData = await imageResponse.json();
 
         if (!imageResponse.ok || !imageData.secure_url) {
-          throw new Error("Fehler beim Hochladen des Bildes.");
+          throw new Error("Error uploading the image.");
         }
         imageUrl = imageData.secure_url;
       }
@@ -295,11 +295,11 @@ export default function AddEntryForm({ onMutate }) {
         });
 
         if (res.ok) {
-          alert("Eintrag erfolgreich aktualisiert!");
+          alert("Entry successfully updated!");
           onMutate("/api/entries"); // Einträge neu validieren
           router.push("/profile");
         } else {
-          throw new Error("Fehler beim Aktualisieren des Eintrags.");
+          throw new Error("Error updating the entry.");
         }
       } else {
         // POST-Anfrage zum Erstellen eines neuen Eintrags
@@ -312,11 +312,11 @@ export default function AddEntryForm({ onMutate }) {
         });
 
         if (res.ok) {
-          alert("Eintrag erfolgreich hinzugefügt!");
+          alert("Entry successfully added!");
           onMutate("/api/entries"); // Einträge neu validieren
           router.push("/profile");
         } else {
-          throw new Error("Fehler beim Hinzufügen des Eintrags.");
+          throw new Error("Error while adding the entry.");
         }
       }
     } catch (error) {
@@ -336,7 +336,7 @@ export default function AddEntryForm({ onMutate }) {
         >
           <Image
             src={imagePreview}
-            alt="Vorschau des hochgeladenen Bildes"
+            alt="Preview of the uploaded image"
             fill
             style={{ objectFit: "cover" }}
           />
@@ -350,14 +350,14 @@ export default function AddEntryForm({ onMutate }) {
           }}
         >
           <PlaceholderText>
-            Hier wird das hochgeladene Bild angezeigt.
+            The uploaded image is displayed here.
           </PlaceholderText>
         </PlaceholderContainer>
       )}
 
       {/* Formularfelder */}
       <PrimaryButton as="label" htmlFor="image-upload">
-        Bild auswählen
+        Select Image
         <HiddenInput
           id="image-upload"
           type="file"
@@ -370,44 +370,47 @@ export default function AddEntryForm({ onMutate }) {
         <ErrorMessage>{errors.image}</ErrorMessage>
       )}
 
-      <Label htmlFor="name">Vermuteter Name des Pilzes</Label>
+      <Label htmlFor="name">Name of Mushroom</Label>
       <Input
         id="name"
         type="text"
-        placeholder="Hier eingeben"
+        placeholder="Type here"
         value={name}
         onChange={(e) => setName(e.target.value)}
         $isError={!!errors.name && isSubmitted}
       />
       {isSubmitted && errors.name && <ErrorMessage>{errors.name}</ErrorMessage>}
 
-      <Label htmlFor="alternativeNames">Alternative Namen</Label>
+      <Label htmlFor="alternativeNames">Alternative Names</Label>
       <Input
         id="alternativeNames"
         type="text"
-        placeholder="Hier eingeben"
+        placeholder="Type here"
         value={alternativeNames}
         onChange={(e) => setAlternativeNames(e.target.value)}
       />
 
-      <Label htmlFor="scientificName">Wissenschaftlicher Name</Label>
+      <Label htmlFor="scientificName">Scientific Name</Label>
       <Input
         id="scientificName"
         type="text"
-        placeholder="Hier eingeben"
+        placeholder="Type here"
         value={scientificName}
         onChange={(e) => setScientificName(e.target.value)}
         $isError={!!errors.scientificName && isSubmitted}
+        style={{ marginBottom: "30px" }}
       />
       {isSubmitted && errors.scientificName && (
         <ErrorMessage>{errors.scientificName}</ErrorMessage>
       )}
 
-      <Label htmlFor="group">Gruppe</Label>
+      {/* Species Section */}
+      <Label htmlFor="group">Species</Label>
       <ButtonGroup>
         {groupOptions.map((option) => (
-          <SelectButton
+          <SelectSpeciesButton
             key={option.value}
+            speciesType={option.value}
             $isSelected={group === option.value}
             onClick={(e) => {
               e.preventDefault();
@@ -421,17 +424,18 @@ export default function AddEntryForm({ onMutate }) {
               height={24}
             />
             {option.label}
-          </SelectButton>
+          </SelectSpeciesButton>
         ))}
       </ButtonGroup>
       {isSubmitted && errors.group && (
         <ErrorMessage>{errors.group}</ErrorMessage>
       )}
 
-      <Label htmlFor="edibility">Verzehrbarkeit</Label>
+      {/* Edibility Section */}
+      <Label htmlFor="edibility">Edibility</Label>
       <ButtonGroup>
         {edibilityOptions.map((option) => (
-          <SelectButton
+          <SelectEdibilityButton
             key={option.value}
             $isSelected={edibility === option.value}
             onClick={(e) => {
@@ -446,7 +450,7 @@ export default function AddEntryForm({ onMutate }) {
               height={24}
             />
             {option.label}
-          </SelectButton>
+          </SelectEdibilityButton>
         ))}
       </ButtonGroup>
       {isSubmitted && errors.edibility && (
@@ -456,7 +460,7 @@ export default function AddEntryForm({ onMutate }) {
       <Label htmlFor="notes">Zusätzliche Notizen</Label>
       <TextArea
         id="notes"
-        placeholder="Hier eingeben"
+        placeholder="Type here"
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
       />
@@ -465,8 +469,9 @@ export default function AddEntryForm({ onMutate }) {
       <Input
         id="location"
         type="text"
-        value={address || "Adresse wird geladen..."}
+        value={address || "Address is loading..."}
         readOnly
+        style={{ marginBottom: "30px" }}
       />
 
       {/* Karte zur Auswahl der Position */}
@@ -500,7 +505,7 @@ export default function AddEntryForm({ onMutate }) {
 
       {/* Submit-Button */}
       <PrimaryButton type="submit" disabled={isLoading}>
-        {isLoading ? "Wird hochgeladen..." : "Eintrag hinzufügen"}
+        {isLoading ? "Being uploaded..." : "Add entry"}
       </PrimaryButton>
     </Form>
   );

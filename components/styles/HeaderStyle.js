@@ -1,10 +1,18 @@
 import styled from "styled-components";
+import { spacing, colors } from "../../styles";
 
 export const HeaderContainer = styled.header`
-  text-align: center;
+  display: flex;
+  position: absolute;
+  justify-content: space-between;
+  align-items: center;
+  padding: ${spacing.small} ${spacing.large};
+  background-color: ${colors.secondary};
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
 `;
 
 export const Logo = styled.img`

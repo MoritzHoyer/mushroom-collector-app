@@ -6,7 +6,9 @@ import { PrimaryButton } from "../components/styles/PrimaryButtonStyle";
 import useSWR from "swr";
 import styled from "styled-components";
 import Image from "next/image";
+// import { MapContainer, Marker, TileLayer, Popup, Circle } from "react-leaflet";
 
+// Dynamische Imports für Leaflet-Komponenten (Client-seitiges Rendering)
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
@@ -19,6 +21,12 @@ const Marker = dynamic(
   () => import("react-leaflet").then((mod) => mod.Marker),
   { ssr: false }
 );
+const Circle = dynamic(
+  () => import("react-leaflet").then((mod) => mod.Circle),
+  {
+    ssr: false,
+  }
+);
 const Popup = dynamic(() => import("react-leaflet").then((mod) => mod.Popup), {
   ssr: false,
 });
@@ -27,18 +35,23 @@ import "leaflet/dist/leaflet.css";
 
 let customIcon;
 if (typeof window !== "undefined") {
-  const L = require("leaflet");
-  customIcon = new L.Icon({
-    iconUrl: "/icons/mushroom-pin-icon.svg",
-    iconSize: [25, 25],
-    iconAnchor: [12, 41],
+  import("leaflet").then((L) => {
+    customIcon = new L.Icon({
+      iconUrl: "/icons/mushroom-pin-icon.svg",
+      iconSize: [25, 25],
+      iconAnchor: [12, 41],
+    });
   });
 }
 
 // Styles for Map
 const MapWrapper = styled.div`
   width: 100vw;
-  height: 100vh;
+  height: calc(100vh - 140px);
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  top: 70px; // Ensure it starts from the very top
 `;
 
 // Fetcher function for SWR
@@ -101,6 +114,19 @@ export default function Locations() {
             attribution="&copy; OpenStreetMap contributors"
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
+          {/* <TileLayer url="https://tile.jawg.io/1ca2be1b-3c2c-4d66-bbf6-82bcad84a98a/{z}/{x}/{y}{r}.png?access-token=OCQMFeqjmuIUfZ9XUmVpkiFgeLCwveHnhg78w316UnrCDNpitbJ0Xus26IF0J4WW" /> */}
+
+          {/* Benutzer-Position anzeigen mit einem Kreis */}
+          <Circle
+            center={[currentLocation.latitude, currentLocation.longitude]}
+            radius={50} // Radius in Metern
+            fillColor="blue"
+            color="blue"
+            fillOpacity={0.2}
+          >
+            <Popup>Deine Position</Popup>
+          </Circle>
+
           {entries.map((entry) => (
             <Marker
               key={entry._id}

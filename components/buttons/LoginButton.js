@@ -1,11 +1,13 @@
+// components/buttons/LoginButton.js
 import React from "react";
-import { useSession, signIn, signOut } from "next-auth/react";
-import { PrimaryButton } from "../styles/PrimaryButtonStyle";
+import { useSession } from "next-auth/react";
 import {
   LoadingContainer,
   LoadingSpinner,
   Message,
 } from "../styles/LoginButtonStyle";
+import GoogleLoginButton from "./GoogleLoginButton";
+import GitHubLoginButton from "./GitHubLoginButton";
 
 const LoginButton = () => {
   const { data: session, status } = useSession();
@@ -19,34 +21,17 @@ const LoginButton = () => {
     );
   }
 
-  if (session) {
+  if (!session) {
     return (
       <>
-        <Message>Angemeldet als {session.user.email}</Message>
-        <PrimaryButton onClick={() => signOut()} aria-label="Abmelden">
-          Abmelden
-        </PrimaryButton>
+        <Message>Du bist nicht angemeldet</Message>
+        <GoogleLoginButton />
+        <GitHubLoginButton />
       </>
     );
   }
 
-  return (
-    <>
-      <Message>Du bist nicht angemeldet</Message>
-      <PrimaryButton
-        onClick={() => signIn("google")}
-        aria-label="Mit Google anmelden"
-      >
-        Mit Google anmelden
-      </PrimaryButton>
-      <PrimaryButton
-        onClick={() => signIn("github")}
-        aria-label="Mit GitHub anmelden"
-      >
-        Mit GitHub anmelden
-      </PrimaryButton>
-    </>
-  );
+  return null; // Wenn der Benutzer angemeldet ist, wird kein Button angezeigt
 };
 
 export default LoginButton;

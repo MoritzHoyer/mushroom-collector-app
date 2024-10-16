@@ -6,7 +6,7 @@ export const PrimaryButton = styled.button`
   justify-content: center;
   align-items: center;
   padding: ${spacing.medium};
-  margin: ${spacing.small};
+  margin: ${spacing.extralarge};
   background-color: ${colors.primary};
   color: white;
   border: none;
