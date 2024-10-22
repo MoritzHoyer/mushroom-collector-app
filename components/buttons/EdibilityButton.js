@@ -1,14 +1,26 @@
 import React from "react";
 import { SelectEdibilityButton } from "../styles/EdibilityButtonStyle";
 
-const EdibilityButtons = () => {
+const EdibilityButtons = ({ selectedEdibility, setSelectedEdibility }) => {
+  const options = [
+    "Deadly Toxic",
+    "Toxic",
+    "Inedible",
+    "Edible Limited",
+    "Edible",
+  ];
+
   return (
     <div>
-      <SelectEdibilityButton>Deadly Toxic</SelectEdibilityButton>
-      <SelectEdibilityButton>Toxic</SelectEdibilityButton>
-      <SelectEdibilityButton>Inedible</SelectEdibilityButton>
-      <SelectEdibilityButton>Edible Limited</SelectEdibilityButton>
-      <SelectEdibilityButton>Edible</SelectEdibilityButton>
+      {options.map((option) => (
+        <SelectEdibilityButton
+          key={option}
+          $isSelected={selectedEdibility === option}
+          onClick={() => setSelectedEdibility(option)}
+        >
+          {option}
+        </SelectEdibilityButton>
+      ))}
     </div>
   );
 };

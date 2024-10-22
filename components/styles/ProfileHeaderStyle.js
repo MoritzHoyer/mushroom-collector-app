@@ -5,7 +5,7 @@ export const HeaderContainer = styled.div`
   display: flex;
   align-items: center;
   width: 100%;
-  justify-content: space-between;
+  justify-content: flex-start;
 `;
 
 export const ProfilePicture = styled.img`
@@ -20,7 +20,7 @@ export const ProfilePicture = styled.img`
 `;
 
 export const Username = styled.h1`
-  margin-left: ${spacing.small};
+  margin-left: ${spacing.large};
 
   @media (min-width: 768px) {
     font-size: 24px;

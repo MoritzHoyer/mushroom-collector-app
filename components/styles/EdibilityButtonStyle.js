@@ -7,9 +7,12 @@ export const SelectEdibilityButton = styled.button`
   justify-content: center;
   padding: ${spacing.medium};
   border-radius: ${borderRadius.button};
-  background-color: ${colors.tertiary};
+  background-color: ${(props) =>
+    props.$isSelected
+      ? colors.primary
+      : colors.tertiary}; // Primärfarbe für ausgewählt
   font-size: ${fontSize.medium};
-  border: none; // Keine Border
+  border: none;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
@@ -18,13 +21,13 @@ export const SelectEdibilityButton = styled.button`
   min-width: 0;
 
   &:hover {
-    background-color: ${colors.tertiaryHover}; // Gleicher Hover-Effekt wie LogoutButton
+    background-color: ${colors.tertiaryHover}; // Hover-Effekt
     box-shadow: ${shadows.hover};
   }
 
   &:focus {
     outline: none;
-    box-shadow: ${shadows.focus}; // Fokus-Effekt wie LogoutButton
+    box-shadow: ${shadows.focus}; // Fokus-Effekt
   }
 
   @media (min-width: 768px) {

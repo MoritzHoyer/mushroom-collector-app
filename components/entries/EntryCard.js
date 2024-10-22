@@ -33,14 +33,12 @@ export default function EntryCard({ entry, onMutate, onDelete }) {
       <EntryImage src={entry.image} alt={entry.name} />
       <TextWrapper>
         <EntryName>{entry.name}</EntryName>
-        <EntryInfo>Wissenschaftlicher Name: {entry.scientificName}</EntryInfo>
+        <EntryInfo>Scientific Name: {entry.scientificName}</EntryInfo>
         <EntryInfo>
-          Standort: Latitude {entry.location.latitude}, Longitude{" "}
+          Location: Latitude {entry.location.latitude}, Longitude{" "}
           {entry.location.longitude}
         </EntryInfo>
-        <EntryInfo>
-          Datum: {new Date(entry.date).toLocaleDateString()}
-        </EntryInfo>
+        <EntryInfo>Date: {new Date(entry.date).toLocaleDateString()}</EntryInfo>
 
         {/* Icons innerhalb des TextWrappers */}
         <IconContainer>
