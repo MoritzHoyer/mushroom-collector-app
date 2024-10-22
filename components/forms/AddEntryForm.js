@@ -457,7 +457,7 @@ export default function AddEntryForm({ onMutate }) {
         <ErrorMessage>{errors.edibility}</ErrorMessage>
       )}
 
-      <Label htmlFor="notes">Zusätzliche Notizen</Label>
+      <Label htmlFor="notes">Additional Notes</Label>
       <TextArea
         id="notes"
         placeholder="Type here"
@@ -465,7 +465,7 @@ export default function AddEntryForm({ onMutate }) {
         onChange={(e) => setNotes(e.target.value)}
       />
 
-      <Label htmlFor="location">Adresse</Label>
+      <Label htmlFor="location">Adress</Label>
       <Input
         id="location"
         type="text"

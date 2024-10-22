@@ -1,22 +1,18 @@
 import styled from "styled-components";
 import { colors, spacing, shadows, fontSize, borderRadius } from "../../styles";
 
-const colorVariants = {
-  boletes: colors.boletes || "#E9C7DD",
-  lamellaAnnulus: colors.lamellaAnnulus || "#EFB857",
-  lamella: colors.lamella || "#C1C761",
-  otherMushrooms: colors.otherMushrooms || "#94BFE1",
-};
-
 export const SelectSpeciesButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
   padding: ${spacing.medium};
   border-radius: ${borderRadius.button};
-  background-color: ${({ speciesType }) => colorVariants[speciesType]};
+  background-color: ${(props) =>
+    props.$isSelected
+      ? colors.primary
+      : colors[props.speciesType]}; // Primärfarbe für ausgewählt
   font-size: ${fontSize.medium};
-  border: none; // Keine Border
+  border: none;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: center;
@@ -25,13 +21,13 @@ export const SelectSpeciesButton = styled.button`
   min-width: 0;
 
   &:hover {
-    background-color: ${colors.tertiaryHover}; // Gleicher Hover-Effekt wie LogoutButton
+    background-color: ${colors.tertiaryHover}; // Hover-Effekt
     box-shadow: ${shadows.hover};
   }
 
   &:focus {
     outline: none;
-    box-shadow: ${shadows.focus}; // Fokus-Effekt wie LogoutButton
+    box-shadow: ${shadows.focus}; // Fokus-Effekt
   }
 
   @media (min-width: 768px) {

@@ -1,17 +1,26 @@
 import React from "react";
 import { SelectSpeciesButton } from "../styles/SpeciesButtonStyle";
 
-const SpeciesButtons = () => {
+const SpeciesButtons = ({ selectedSpecies, setSelectedSpecies }) => {
+  const speciesOptions = [
+    { type: "boletes", label: "Boletes" },
+    { type: "lamellaAnnulus", label: "Lamellar Annulus" },
+    { type: "lamella", label: "Lamellar" },
+    { type: "otherMushrooms", label: "Other Mushrooms" },
+  ];
+
   return (
     <div>
-      <SelectSpeciesButton speciesType="boletes">Boletes</SelectSpeciesButton>
-      <SelectSpeciesButton speciesType="lamellaAnnulus">
-        Lamellar Annulus
-      </SelectSpeciesButton>
-      <SelectSpeciesButton speciesType="lamella">Lamellar</SelectSpeciesButton>
-      <SelectSpeciesButton speciesType="otherMushrooms">
-        Other Mushrooms
-      </SelectSpeciesButton>
+      {speciesOptions.map((option) => (
+        <SelectSpeciesButton
+          key={option.type}
+          speciesType={option.type}
+          $isSelected={selectedSpecies === option.type}
+          onClick={() => setSelectedSpecies(option.type)}
+        >
+          {option.label}
+        </SelectSpeciesButton>
+      ))}
     </div>
   );
 };
